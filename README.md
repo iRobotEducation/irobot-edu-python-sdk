@@ -16,7 +16,14 @@ The BETA version of the iRobot® Python SDK is provided “as is” to conduct t
 Please do file [issues](https://github.com/iRobotEducation/irobot-edu-python-sdk/issues) as they are found, so that the team (or the community) can address them.
 
 
-## Installation
+## Installation using pip
+
+```
+pip3 install irobot_edu_sdk
+```
+
+
+## Optional: Installation from Source
 
 ```
 git clone https://github.com/iRobotEducation/irobot-edu-python-sdk.git
