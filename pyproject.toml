@@ -1,13 +1,20 @@
 [tool.poetry]
 name = "irobot_edu_sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python SDK for iRobot Edu robots"
 authors = ["iRobot Corporation <education@irobot.com>"]
-license = "The 3-Clause BSD License"
+license = "BSD-3-Clause"
 readme = "README.md"
-homepage = "https://github.com/RootRobotics/root-robot-python-sdk"
+homepage = "https://python.irobot.com"
+repository = "https://github.com/iRobotEducation/irobot-edu-python-sdk"
 packages = [
     { include = "irobot_edu_sdk" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent"
 ]
 
 [tool.poetry.dependencies]
