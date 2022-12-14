@@ -8,7 +8,7 @@ This is a Bluetooth Low Energy class that implements the Backend interface metho
 It is compatible with CPython on macOS, Windows, and Linux using the Bleak library.
 """
 
-from asyncio import sleep
+from asyncio import sleep, Lock
 from queue import SimpleQueue
 from typing import Optional
 from bleak import BleakClient, BleakScanner
@@ -30,6 +30,7 @@ class Bluetooth(Backend):
         self._device = None
         self._client: Optional[BleakClient] = None
         self._queue: SimpleQueue = SimpleQueue()
+        self._txlock = Lock()
 
     def rx_handler(self, characteristic, data):
         self._queue.put(Packet.from_bytes(bytes(data)))
@@ -72,4 +73,5 @@ class Bluetooth(Backend):
 
     async def write_packet(self, packet: Packet):
         if self._client:
-            await self._client.write_gatt_char(self.TX_CHARACTERISTIC, packet.to_bytearray(), True)
+            async with self._txlock:
+                await self._client.write_gatt_char(self.TX_CHARACTERISTIC, packet.to_bytearray(), True)
