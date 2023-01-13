@@ -523,3 +523,18 @@ class Robot:
                 await self._backend.write_packet(Packet(dev, cmd, inc, payload))
                 await completer.wait(self.DEFAULT_TIMEOUT + len(payload))
                 break
+
+    async def get_accelerometer(self):
+        """Get instantaneous accelerometer values"""
+        dev, cmd, inc = 16, 1, self.inc
+        completer = Completer()
+        self._responses[(dev, cmd, inc)] = completer
+        await self._backend.write_packet(Packet(dev, cmd, inc))
+
+        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        if packet:
+            payload = packet.payload
+            timestamp = unpack('>I', payload[0:4])[0]
+            (x,y,z) = unpack('>hhh', payload[4:10])
+            return (x,y,z)
+        return None
