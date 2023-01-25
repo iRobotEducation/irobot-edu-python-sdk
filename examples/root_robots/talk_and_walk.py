@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
@@ -18,7 +18,7 @@ async def walk(robot):
         await robot.move(-6)
 
 
-@event(robot.when_bumped, [])
+@event(robot.when_bumped, [True, True])
 async def talk(robot):
     while True:
         print('talk')

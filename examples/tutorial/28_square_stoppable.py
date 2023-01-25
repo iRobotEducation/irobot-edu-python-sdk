@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 # The robot will try to draw a square, but it can be stopped when their bumpers detect a collision.
@@ -15,7 +15,7 @@ robot = Root(Bluetooth())
 stop = False
 
 
-@event(robot.when_bumped, [])
+@event(robot.when_bumped, [True, True])
 async def bumped(robot):
     global stop  # Please note the "global" keyword here!
     await robot.set_lights_rgb(255, 0, 0)
@@ -30,6 +30,9 @@ async def play(robot):
         if stop:
             break  # This will stop the for loop!
         await robot.move(10)
+        print(stop)
+        if stop:
+            break  # This will stop the for loop! Need to check before every command, since we don't know when we will be asked to stop.
         await robot.turn_left(90)
 
 

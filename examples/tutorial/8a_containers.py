@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 # Let's see what Python's containers can do for our programs.
@@ -53,4 +53,4 @@ print("inventory['Roomba'] --> ", inventory['Roomba'])
 print("'root' in inventory --> ", 'root' in inventory)  # Do this instead to find out if the key is present in the dictionary.
 
 print()
-print('You may also want to search the Internet for "Python tuples"...')
+print('You may also want to search the Internet for "Python tuples."')

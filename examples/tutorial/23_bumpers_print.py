@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 # An event triggered by the robot's sensors, such as its bumpers, can also run multiple tasks.
@@ -22,13 +22,13 @@ async def bumped(robot):
     print('RIGHT')
 
 
-@event(robot.when_bumped, [])  # An empty list means that if ANY of the bumpers detect a collition, this task will be triggered.
+@event(robot.when_bumped, [True, True])  # The function's argument is a filter; if EITHER of the bumpers detects a collision, this task will be triggered.
 async def bumped(robot):
     print('ANY')
 
 
 @event(robot.when_play)
 async def play(robot):
-    print("Try clicking on the robot's bumpers")
+    print("Try pressing on the robot's bumpers.")
 
 robot.play()

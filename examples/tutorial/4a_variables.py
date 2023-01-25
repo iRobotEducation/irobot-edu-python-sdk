@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 # It's easy to create a variable in Python.
@@ -13,6 +13,6 @@ print()
 
 # Variables can be re-assigned in Python.
 # Some languages require reused variables to keep the same type (for example, integer, floating point, or string).
-# But Python does not have this requirement. Here, we reassign "n" from an integer to a string:
+# Python does not have this requirement. Here, we reassign "n" from an integer to a string:
 n = 'Create'
 print(n)
