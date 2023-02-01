@@ -39,7 +39,8 @@ async def touched(robot):
     await robot.play_note(Note.A5, duration)
 
 
-@event(robot.when_touched, [])
+@event(robot.when_touched, [True, True,
+                            True, True])
 async def touched(robot):
     print('ANY sensor touched')
 

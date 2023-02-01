@@ -1,9 +1,9 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
-# There are 3 types of numbers in Python: integer, floating point and complex.
-# But we won't deal with complex numbers in this tutorial.
+# There are 3 types of numbers in Python: integer, floating point, and complex.
+# We won't work with complex numbers in this tutorial.
 
 print()  # Blank line.
 print('Integer numbers:')

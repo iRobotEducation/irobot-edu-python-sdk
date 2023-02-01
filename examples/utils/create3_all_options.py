@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
@@ -21,7 +21,7 @@ async def print_pos(robot):
 
 
 @event(robot.when_bumped, [True, False])  # [left, right]
-# Please note that the 'robot' parameter is not related with the 'robot' instance: robot is what can be used inside the event's function.
+# Please note that the 'robot' parameter is not related to the 'robot' instance: robot is what can be used inside the event's function.
 async def bumped(robot):  # The name of this function can be any valid Python function name.
     print('Left bumper pressed')
     await robot.set_lights_rgb(255, 0, 0)  # red
@@ -35,12 +35,12 @@ async def bumped(robot):
     await robot.set_wheel_speeds(speed, -speed)
 
 
-@event(robot.when_bumped, [])
+@event(robot.when_bumped, [True, True])
 async def bumped(robot):
     print('Any bumper pressed')
 
 
-@event(robot.when_bumped, [])
+@event(robot.when_bumped, [True, True])
 async def bumped(robot):
     for _ in range(4):
         await robot.play_note(440, 0.25)  # A4
@@ -52,7 +52,7 @@ async def touched(robot):
     print('(.) button touched')
 
 
-@event(robot.when_touched, [])
+@event(robot.when_touched, [True, True])
 async def touched(robot):
     print('Any button pressed')
 
@@ -93,7 +93,7 @@ async def play(robot):
     print('Battery: ', battery[0], 'mV; ', battery[1], '%')
     print('Serial #:', await robot.get_serial_number())
     print('SKU:', await robot.get_sku())
-    # await robot.set_name('NewName')  # Uncomment this one if you want to try renaming your robot.
+    # await robot.set_name('NewName')  # Uncomment this line if you want to try renaming your robot.
 
 
 @event(robot.when_play)
@@ -117,5 +117,5 @@ async def play(robot):
         await robot.set_lights_rgb(r, g, b)
 
 
-# Triggers all the wheh_play events as parallel tasks.
+# Triggers all the "when_play" events as parallel tasks.
 robot.play()

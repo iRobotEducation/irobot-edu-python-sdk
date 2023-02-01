@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
@@ -23,7 +23,7 @@ async def touched(robot):
     await robot.play_note(Note.C5_SHARP, duration)
 
 
-@event(robot.when_touched, [])
+@event(robot.when_touched, [True, True])
 async def touched(robot):
     print('ANY sensor touched')
 

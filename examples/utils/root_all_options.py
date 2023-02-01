@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
@@ -35,12 +35,12 @@ async def bumped(robot):
     await robot.set_wheel_speeds(speed, -speed)
 
 
-@event(robot.when_bumped, [])
+@event(robot.when_bumped, [True, True])
 async def bumped(robot):
     print('Any bumper pressed')
 
 
-@event(robot.when_bumped, [])
+@event(robot.when_bumped, [True, True])
 async def bumped(robot):
     for _ in range(4):
         await robot.play_note(440, 0.25)  # A4
@@ -50,10 +50,11 @@ async def bumped(robot):
 @event(robot.when_touched, [True, False,    # Front touch sensors.
                             False, False])  # Back touch sensors.
 async def touched(robot):
-    print('Front-left sensor touched')
+    print('Front-left sensor touched (task 1)')
 
 
-@event(robot.when_touched, [])
+@event(robot.when_touched, [True, True,
+                            True, True])
 async def touched(robot):
     print('Any touch sensor touched')
 
@@ -61,6 +62,7 @@ async def touched(robot):
 @event(robot.when_touched, [True, False,
                             False, False])
 async def touched(robot):
+    print('Front-left sensor touched (task 2)')
     await robot.set_marker(robot.MARKER_DOWN)
     await robot.turn_right(90)
     await robot.navigate_to(5, 10)
@@ -72,7 +74,7 @@ async def touched(robot):
 @event(robot.when_touched, [False, True,
                             False, False])
 async def touched(robot):
-    print('(..) button touched')
+    print('Front-right sensor touched')
     await robot.set_lights(Robot.LIGHT_SPIN, Color(255, 255, 0))
     await robot.move(2)
     await robot.arc(Robot.DIR_RIGHT, 90, 4)
@@ -83,12 +85,14 @@ async def touched(robot):
 @event(robot.when_touched, [False, False,
                             True, False])
 async def touched(robot):
+    print('Rear-left sensor touched')
     await robot.set_marker(robot.MARKER_UP)
 
 
 @event(robot.when_touched, [False, False,
                             False, True])
 async def touched(robot):
+    print('Rear-right sensor touched')
     await robot.set_marker(robot.MARKER_DOWN)
 
 
@@ -106,7 +110,7 @@ async def play(robot):
     print('Battery: ', battery[0], 'mV; ', battery[1], '%')
     print('Serial #:', await robot.get_serial_number())
     print('SKU:', await robot.get_sku())
-    # await robot.set_name('NewName')  # Uncomment this one if you want to try renaming your robot.
+    # await robot.set_name('NewName')  # Uncomment this line if you want to try renaming your robot.
 
 
 @event(robot.when_play)
@@ -119,5 +123,5 @@ async def play(robot):
         await robot.wait(1)
 
 
-# Triggers all the wheh_play events as parallel tasks.
+# Triggers all the "when_play" events as parallel tasks.
 robot.play()
