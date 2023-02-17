@@ -165,3 +165,18 @@ class Root(Robot):
                 return f'Main: {str(main[1])}.{str(main[2])}'
             except IndexError:
                 return None;
+
+    async def get_light_values(self):
+        """Get instantaneous ambient light sensor values"""
+        dev, cmd, inc = 13, 1, self.inc
+        completer = Completer()
+        self._responses[(dev, cmd, inc)] = completer
+        await self._backend.write_packet(Packet(dev, cmd, inc))
+
+        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        if packet:
+            payload = packet.payload
+            timestamp = unpack('>I', payload[0:4])[0]
+            (l, r) = unpack('>HH', payload[4:8])
+            return (l / 1000, r / 1000) # normalize between 0 and 1
+        return None
