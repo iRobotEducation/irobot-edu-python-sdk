@@ -78,14 +78,14 @@ class Root(Robot):
             # TODO: Add trigger.
             await event.run(self)
 
-    # TODO: Test.
     async def _when_light_seen_handler(self, packet: Packet):
         for event in self._when_light_seen:
             self.light_sensors.state = packet.payload[4]
             self.light_sensors.left = unpack(">H", packet.payload[5:7])[0]
             self.light_sensors.right = unpack(">H", packet.payload[7:9])[0]
-            # TODO: Add trigger
-            await event.run(self)
+            if len(event.condition) == 1:
+                if event.condition[0] == self.light_sensors.state:
+                    await event.run(self)
 
     # Event Callbacks.
 
