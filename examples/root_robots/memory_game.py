@@ -119,41 +119,33 @@ async def play_color(color):
 @event(robot.when_play)
 async def play(robot):
     global last_touched, was_touched
-    level = 1
-    guess = 0
     colors = ["GREEN", "RED", "YELLOW", "BLUE"]
     solution = []
 
-    # Generate solition
-    for _ in range(1000):
-        solution.append(random.choice(colors))
-    
     print("Starting game!")
     while True:
+        # Add to solution
+        solution.append(random.choice(colors))
+
         # Play solution
         await robot.wait(0.5)
-        for i in range(level):
-            await play_color(solution[i])
+        for c in solution:
+            await play_color(c)
         
-        while guess < level:
+        for c in solution:
             # Wait for next touch
             while not was_touched:
                 await robot.wait(0.1)
             
             # Check touch against solution
-            if last_touched == solution[guess]:
+            if last_touched == c:
                 await play_color(last_touched)
-                guess += 1
             else:
                 await play_color("LOSE")
-                print("Game over! Score:", level-1)
+                print("Game over! Score:", len(solution)-1)
                 return
 
             # Reset for next touch
             was_touched = False 
-
-        # Reach next level
-        level += 1
-        guess = 0
         
 robot.play()
