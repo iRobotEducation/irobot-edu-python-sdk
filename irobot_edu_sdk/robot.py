@@ -318,13 +318,13 @@ class Robot:
         await asyncio.sleep(time)
 
     async def get_versions(self, board: int) -> List[int]:
-        """Get version numbers. Returns [board, fw maj, fw min, hw maj, hw min, boot maj, boot min, proto maj, proto min]."""
+        """Get version numbers. Returns [board, fw maj, fw min, hw maj, hw min, boot maj, boot min, proto maj, proto min, patch]."""
         dev, cmd, inc = 0, 0, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, bytes([board])))
         packet = await completer.wait(self.DEFAULT_TIMEOUT)
-        return packet.payload[: 9] if packet else []
+        return packet.payload[: 10] if packet else []
 
     async def set_name(self, name: str):
         """Set robot name."""
