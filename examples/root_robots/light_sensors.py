@@ -7,21 +7,13 @@ from irobot_edu_sdk.robots import event, hand_over, Root
 
 robot = Root(Bluetooth())
 
-@event(robot.when_light_seen, [Root.LIGHT_DARK])
+@event(robot.when_light_seen, [Root.LIGHT_DARKER])
 async def dark(robot):
-    print('Event: Dark')
+    print('Event: Darker')
 
-@event(robot.when_light_seen, [Root.LIGHT_BRIGHT])
+@event(robot.when_light_seen, [Root.LIGHT_BRIGHTER])
 async def bright(robot):
-    print('Event: Bright')
-
-@event(robot.when_light_seen, [Root.LIGHT_RIGHT_BRIGHTER_THAN_LEFT])
-async def roverl(robot):
-    print('Event: R > L')
-
-@event(robot.when_light_seen, [Root.LIGHT_LEFT_BRIGHTER_THAN_RIGHT])
-async def loverr(robot):
-    print('Event: L > R')
+    print('Event: Brighter')
 
 @event(robot.when_play)
 async def play(robot):

@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -24,10 +24,10 @@ class Root(Robot):
 
     # Light sensor.
     LIGHT_UNKNOWN = 0
-    LIGHT_DARK = 4
+    LIGHT_DARKER = 4
     LIGHT_RIGHT_BRIGHTER_THAN_LEFT = 5
     LIGHT_LEFT_BRIGHTER_THAN_RIGHT = 6
-    LIGHT_BRIGHT = 7
+    LIGHT_BRIGHTER = 7
 
     # Gravity compensation.
     GRAVITY_OFF = 0
