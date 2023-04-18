@@ -107,7 +107,8 @@ async def play(robot):
     print('play 2')
     battery = await robot.get_battery_level()
     print('Name:', await robot.get_name())
-    print('Battery: ', battery[0], 'mV; ', battery[1], '%')
+    print('Version:', await robot.get_version_string())
+    print('Battery:', battery[0], 'mV; ', battery[1], '%')
     print('Serial #:', await robot.get_serial_number())
     print('SKU:', await robot.get_sku())
     # await robot.set_name('NewName')  # Uncomment this line if you want to try renaming your robot.

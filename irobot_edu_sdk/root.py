@@ -153,3 +153,15 @@ class Root(Robot):
         if heading is not None:
             # TODO: test.
             await self.turn_left(Movement.minimize_angle(heading - self.heading))
+
+    async def get_version_string(self) -> str:
+        """Get version as a human-readable string."""
+        main = await self.get_versions(0xA5)
+        color = await self.get_versions(0xC6)
+        try:
+            return f'Main: {str(main[1])}.{str(main[2])}\tColor: {str(color[1])}.{str(color[2])}'
+        except IndexError:
+            try:
+                return f'Main: {str(main[1])}.{str(main[2])}'
+            except IndexError:
+                return None;
