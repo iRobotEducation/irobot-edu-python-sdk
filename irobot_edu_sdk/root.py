@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -24,10 +24,10 @@ class Root(Robot):
 
     # Light sensor.
     LIGHT_UNKNOWN = 0
-    LIGHT_DARK = 4
+    LIGHT_DARKER = 4
     LIGHT_RIGHT_BRIGHTER_THAN_LEFT = 5
     LIGHT_LEFT_BRIGHTER_THAN_RIGHT = 6
-    LIGHT_BRIGHT = 7
+    LIGHT_BRIGHTER = 7
 
     # Gravity compensation.
     GRAVITY_OFF = 0
@@ -78,14 +78,14 @@ class Root(Robot):
             # TODO: Add trigger.
             await event.run(self)
 
-    # TODO: Test.
     async def _when_light_seen_handler(self, packet: Packet):
         for event in self._when_light_seen:
             self.light_sensors.state = packet.payload[4]
             self.light_sensors.left = unpack(">H", packet.payload[5:7])[0]
             self.light_sensors.right = unpack(">H", packet.payload[7:9])[0]
-            # TODO: Add trigger
-            await event.run(self)
+            if len(event.condition) == 1:
+                if event.condition[0] == self.light_sensors.state:
+                    await event.run(self)
 
     # Event Callbacks.
 
@@ -165,3 +165,18 @@ class Root(Robot):
                 return f'Main: {str(main[1])}.{str(main[2])}'
             except IndexError:
                 return None;
+
+    async def get_light_values(self):
+        """Get instantaneous ambient light sensor values"""
+        dev, cmd, inc = 13, 1, self.inc
+        completer = Completer()
+        self._responses[(dev, cmd, inc)] = completer
+        await self._backend.write_packet(Packet(dev, cmd, inc))
+
+        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        if packet:
+            payload = packet.payload
+            timestamp = unpack('>I', payload[0:4])[0]
+            (l, r) = unpack('>HH', payload[4:8])
+            return (l / 1000, r / 1000) # normalize between 0 and 1
+        return None
