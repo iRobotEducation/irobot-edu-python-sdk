@@ -160,3 +160,19 @@ class Create3(Robot):
             return {'timestamp': unpacked[0], 'contacts': unpacked[1], 'IR sensor 0': unpacked[2],
                     'IR sensor 1': unpacked[3], 'IR sensor 2': unpacked[4]}
         return None
+
+    async def get_version_string(self) -> str:
+        """Get version as a human-readable string."""
+        ver = await self.get_versions(0xA5)
+        try:
+            major = ver[1]
+            minor = ver[2]
+            patch = ver[9]
+            if major < 32 or major > 126:
+                major = str(major)
+            else:
+                major = chr(major)
+
+            return '.'.join([major, str(ver[2]), str(ver[9])])
+        except IndexError:
+            return None;
