@@ -10,7 +10,7 @@ from .completer import Completer
 from .packet import Packet
 from .utils import bound
 from .getter_types import IPv4Addresses, IrProximity, Pose
-from irobot_edu_sdk.robot import Robot
+from .robot import Robot
 
 
 class Create3(Robot):
