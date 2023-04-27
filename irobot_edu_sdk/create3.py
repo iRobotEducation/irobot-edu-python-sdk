@@ -173,6 +173,6 @@ class Create3(Robot):
             else:
                 major = chr(major)
 
-            return '.'.join([major, str(ver[2]), str(ver[9])])
+            return '.'.join([major, str(minor), str(patch)])
         except IndexError:
             return None;
