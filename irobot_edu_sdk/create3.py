@@ -48,7 +48,8 @@ class Create3(Robot):
             return self.ipv4_address
         return None
 
-    async def get_ir_proximity(self):
+    async def get_6x_ir_proximity(self):
+        """Get Original IR Proximity Values and States"""
         dev, cmd, inc = 11, 1, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
@@ -62,6 +63,11 @@ class Create3(Robot):
         return None
 
     async def get_packed_ir_proximity(self):
+        """DEPRECATED function for new Get IR Proximity Values and States"""
+        print('Warning: get_packed_ir_proximity() has been deprecated, please use get_ir_proximity() instead')
+        await self.get_7x_ir_proximity()
+
+    async def get_7x_ir_proximity(self):
         """Get Packed IR Proximity Values and States"""
         dev, cmd, inc = 11, 2, self.inc
         completer = Completer()
@@ -85,7 +91,22 @@ class Create3(Robot):
             return ir_proximity
         return None
 
+    async def get_ir_proximity(self):
+        """Version-Agnostic Get IR Proximity Values and States"""
+        ir_prox = await self.get_7x_ir_proximity()
+        if ir_prox is not None:
+            return ir_prox
+
+        ir_prox = await self.get_6x_ir_proximity()
+        if ir_prox is not None:
+            print('Warning: ir_prox() missing seventh value; you may need to update your robot')
+            ir_prox.sensors.append(float('nan'))
+            return ir_prox
+
+        return None
+
     async def get_position(self):
+        """Get robot's position and heading."""
         dev, cmd, inc = 1, 16, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
@@ -101,6 +122,7 @@ class Create3(Robot):
         return None
 
     async def reset_navigation(self):
+        """Request that robot resets position and heading."""
         await self._backend.write_packet(Packet(1, 15, self.inc))
 
     async def navigate_to(self, x: Union[int, float], y: Union[int, float], heading: Union[int, float] = None):
@@ -175,4 +197,4 @@ class Create3(Robot):
 
             return '.'.join([major, str(minor), str(patch)])
         except IndexError:
-            return None;
+            return None
