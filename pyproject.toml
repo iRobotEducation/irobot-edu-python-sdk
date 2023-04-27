@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "irobot_edu_sdk"
-version = "0.3.0"
+version = "0.4.0"
 description = "Python SDK for iRobot Edu robots"
 authors = ["iRobot Corporation <education@irobot.com>"]
 license = "BSD-3-Clause"
