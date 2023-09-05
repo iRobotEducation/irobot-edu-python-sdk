@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 """
@@ -49,10 +49,11 @@ class Bluetooth(Backend):
                             self._address = device.address
                             self._device = device
                             break
-        print(f'Connecting to {device.name} ({device.address})')
         if self._device:
+            print(f'Connecting to {device.name} ({device.address})')
             self._client = BleakClient(self._device)
         else:
+            print(f'Connecting to {self._address}')
             self._client = BleakClient(self._address)
 
         if await self._client.connect():
