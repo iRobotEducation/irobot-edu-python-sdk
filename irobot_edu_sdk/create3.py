@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -106,7 +106,11 @@ class Create3(Robot):
         return None
 
     async def get_position(self):
-        """Get robot's position and heading."""
+        """Get robot's position and heading.
+        Units:
+            x, y: cm
+            heading: deg
+        """
         dev, cmd, inc = 1, 16, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
@@ -115,8 +119,8 @@ class Create3(Robot):
         if packet:
             payload = packet.payload
             timestamp = unpack('>I', payload[0:4])[0]
-            x = unpack('>i', payload[4:8])[0]
-            y = unpack('>i', payload[8:12])[0]
+            x = unpack('>i', payload[4:8])[0] / 10
+            y = unpack('>i', payload[8:12])[0] / 10
             heading = unpack('>h', payload[12:14])[0] / 10
             return Pose(x, y, heading)
         return None
