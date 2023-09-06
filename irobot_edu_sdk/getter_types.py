@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -21,6 +21,9 @@ class Pose:
 
     def turn_left(self, angle):
         self.heading += angle
+
+    def __str__(self):
+        return f"Pose ({self.x}, {self.y}, {self.heading}°)"
 
 
 class Movement:
