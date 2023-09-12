@@ -21,7 +21,6 @@ class Bluetooth(Backend):
     UART_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
     TX_CHARACTERISTIC = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
     RX_CHARACTERISTIC = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
-    UUID_KEY = 'uuids'
 
     def __init__(self, name: str = None, address: Optional[str] = None):
         """If no name is provided, connects to the first device found."""
@@ -39,12 +38,15 @@ class Bluetooth(Backend):
         """This method does not exit until a robot is found"""
 
         while not self._address:
-            # Filter by service uuid is not supported on all operating systems.
-            devices = await BleakScanner.discover(service_uuids=[self.ROOT_ID_SERVICE, self.UART_SERVICE])
-            for device in devices:
-                # print('device.metadata:', device.metadata) # Debug.
-                if self.UUID_KEY in device.metadata:
-                    if self.ROOT_ID_SERVICE in device.metadata[self.UUID_KEY]:
+            if self._name is not None: # If a name is given, try to connect to that
+                device = await BleakScanner.find_device_by_name(self._name)
+                if device:
+                    self._address = device.address
+                    self._device = device
+            else: # If no name is given, connect to first device with Root ID service
+                discovered = await BleakScanner.discover(service_uuids=[self.ROOT_ID_SERVICE, self.UART_SERVICE], return_adv=True)
+                for device, adv_data in discovered.values():
+                    if self.ROOT_ID_SERVICE in adv_data.service_uuids:
                         if self._name is None or self._name == device.name:
                             self._address = device.address
                             self._device = device
@@ -63,7 +65,7 @@ class Bluetooth(Backend):
         return self._client.is_connected if self._client else False
 
     async def disconnect(self):
-        if self.is_connected:
+        if await self.is_connected():
             await self._client.disconnect()
         self._client = None
 
