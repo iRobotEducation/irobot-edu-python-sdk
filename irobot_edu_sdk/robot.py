@@ -113,7 +113,8 @@ class Robot:
         """Ensures that the robot resets its state when the program is finished neatly."""
         if self._run and await self._backend.is_connected():
             await self.stop()
-        await self._backend.disconnect()
+            await self.disconnect()
+            await self._backend.disconnect()
 
     @property
     def inc(self):
