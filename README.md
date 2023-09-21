@@ -70,6 +70,7 @@ backend1 = Bluetooth('ROOT') # Use robot named 'ROOT'
 ### Serial
 
 Some Root® robots support a serial port over USB.
+This feature is currently not available on Create® 3 robots.
 
 ```python
 from irobot_edu_sdk.backend.serial import Serial
