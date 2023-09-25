@@ -70,6 +70,7 @@ backend1 = Bluetooth('ROOT') # Use robot named 'ROOT'
 ### Serial
 
 Some Root® robots support a serial port over USB.
+This feature is currently not available on Create® 3 robots.
 
 ```python
 from irobot_edu_sdk.backend.serial import Serial
@@ -95,7 +96,18 @@ backend = USB() # MicroPython-compatible board is powered from USB-C port
 
 NOTE: You may need to use a USB-C to USB-A adapter or a USB-C to micro USB cable.
 
-**© 2022 iRobot Corporation. All rights reserved.**
+### Turtle programming model
+
+This portion of the SDK provides an alternative programming interface to the SDK following the paradigm of 
+[turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics).
+It provides a limited, simplified, and synchronous interface to the in the spirit (and largely the syntax) of the 
+[Python® turtle.Turtle class](https://docs.python.org/3/library/turtle.html).
+It can be used on any robot supported by the SDK, using any supported backend. See the `README.md` file and other
+example files in the `examples_turtle/` directory for more information.
+
+## Additional information
+
+**© 2022-2023 iRobot Corporation. All rights reserved.**
 * [Terms and Conditions](https://about.irobot.com/en-us/legal/terms-and-conditions)
 * [Privacy Policy](https://edu.irobot.com/privacy-policy)
 

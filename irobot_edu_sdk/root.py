@@ -15,7 +15,7 @@ from .getter_types import Pose, Movement, ColorSensor, LightSensors
 
 
 class Root(Robot):
-    """Create 3 robot object"""
+    """Root robot object"""
 
     # Marker/eraser.
     MARKER_UP = 0

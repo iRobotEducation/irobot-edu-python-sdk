@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -10,7 +10,7 @@ from .completer import Completer
 from .packet import Packet
 from .utils import bound
 from .getter_types import IPv4Addresses, IrProximity, Pose
-from irobot_edu_sdk.robot import Robot
+from .robot import Robot
 
 
 class Create3(Robot):
@@ -48,7 +48,8 @@ class Create3(Robot):
             return self.ipv4_address
         return None
 
-    async def get_ir_proximity(self):
+    async def get_6x_ir_proximity(self):
+        """Get Original IR Proximity Values and States"""
         dev, cmd, inc = 11, 1, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
@@ -62,6 +63,11 @@ class Create3(Robot):
         return None
 
     async def get_packed_ir_proximity(self):
+        """DEPRECATED function for new Get IR Proximity Values and States"""
+        print('Warning: get_packed_ir_proximity() has been deprecated, please use get_ir_proximity() instead')
+        await self.get_7x_ir_proximity()
+
+    async def get_7x_ir_proximity(self):
         """Get Packed IR Proximity Values and States"""
         dev, cmd, inc = 11, 2, self.inc
         completer = Completer()
@@ -85,7 +91,26 @@ class Create3(Robot):
             return ir_proximity
         return None
 
+    async def get_ir_proximity(self):
+        """Version-Agnostic Get IR Proximity Values and States"""
+        ir_prox = await self.get_7x_ir_proximity()
+        if ir_prox is not None:
+            return ir_prox
+
+        ir_prox = await self.get_6x_ir_proximity()
+        if ir_prox is not None:
+            print('Warning: ir_prox() missing seventh value; you may need to update your robot')
+            ir_prox.sensors.append(float('nan'))
+            return ir_prox
+
+        return None
+
     async def get_position(self):
+        """Get robot's position and heading.
+        Units:
+            x, y: cm
+            heading: deg
+        """
         dev, cmd, inc = 1, 16, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
@@ -94,13 +119,14 @@ class Create3(Robot):
         if packet:
             payload = packet.payload
             timestamp = unpack('>I', payload[0:4])[0]
-            x = unpack('>i', payload[4:8])[0]
-            y = unpack('>i', payload[8:12])[0]
+            x = unpack('>i', payload[4:8])[0] / 10
+            y = unpack('>i', payload[8:12])[0] / 10
             heading = unpack('>h', payload[12:14])[0] / 10
             return Pose(x, y, heading)
         return None
 
     async def reset_navigation(self):
+        """Request that robot resets position and heading."""
         await self._backend.write_packet(Packet(1, 15, self.inc))
 
     async def navigate_to(self, x: Union[int, float], y: Union[int, float], heading: Union[int, float] = None):
@@ -173,6 +199,6 @@ class Create3(Robot):
             else:
                 major = chr(major)
 
-            return '.'.join([major, str(ver[2]), str(ver[9])])
+            return '.'.join([major, str(minor), str(patch)])
         except IndexError:
-            return None;
+            return None

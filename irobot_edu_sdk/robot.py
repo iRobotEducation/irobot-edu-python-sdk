@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 try:
@@ -92,7 +92,16 @@ class Robot:
 
         self.sound_enabled = True
 
+        # Catch all signals and direct to the _exit_handler
         signal.signal(signal.SIGINT, _exit_handler)
+        signal.signal(signal.SIGTERM, _exit_handler)
+
+        try:
+            signal.signal(signal.SIGTSTP, _exit_handler)
+            signal.signal(signal.SIGQUIT, _exit_handler)
+            signal.signal(signal.SIGHUP, _exit_handler)
+        except AttributeError:
+            pass # these signals do not exist in Windows
 
     def __enter__(self):
         return self
@@ -104,7 +113,8 @@ class Robot:
         """Ensures that the robot resets its state when the program is finished neatly."""
         if self._run and await self._backend.is_connected():
             await self.stop()
-        await self._backend.disconnect()
+            await self.disconnect()
+            await self._backend.disconnect()
 
     @property
     def inc(self):
