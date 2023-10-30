@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 try:
@@ -7,6 +7,7 @@ try:
 except ImportError:
     pass
 from struct import pack
+import binascii
 
 
 class Packet():
@@ -62,6 +63,9 @@ class Packet():
                     crc ^= 0x07
             crc &= 0xFF
         return crc
+
+    def __str__(self):
+        return f"Packet [{self.dev:3}, {self.cmd:3}, {self.inc:3}]: " + binascii.hexlify(self.payload).decode('ascii')
 
     @property
     def crc(self) -> int:
