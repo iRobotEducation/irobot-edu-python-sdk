@@ -9,13 +9,14 @@ except ImportError:
     import uasyncio as asyncio
 
 from struct import pack, unpack
+from math import radians
 from .completer import Completer
 from .packet import Packet
 from .utils import bound, is_web
 from .color import Color
 from .backend.backend import Backend
 from .event import Event
-from .getter_types import Bumpers, TouchSensors, CliffSensor, MotorStall, Battery
+from .getter_types import Bumpers, TouchSensors, CliffSensor, MotorStall, Battery, Pose
 import signal
 import sys
 
@@ -54,11 +55,16 @@ class Robot:
     ERROR_SATURATED_PID = 4
     ERROR_TIMEOUT = 5
 
+    # Whether or not the local pose estimate should use the robot's estimate or calculate locally
+    USE_ROBOT_POSE = False
+
     def __init__(self, backend: Backend):
         self._backend = backend
         self.on_data_reception = getattr(self._backend, 'on_data_reception', None)  # Events based backend?
         if callable(self.on_data_reception):
             self.on_data_reception(self.data_reception)
+
+        self.pose = Pose()
 
         self._inc = 0
         self._run = False
@@ -436,7 +442,12 @@ class Robot:
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(packet)
-        await completer.wait(self.DEFAULT_TIMEOUT + int(abs(distance) / 10))
+        packet = await completer.wait(self.DEFAULT_TIMEOUT + int(abs(distance) / 10))
+        if self.USE_ROBOT_POSE and packet:
+            return self.pose.set_from_packet(packet)
+        else:
+            self.pose.move(distance)
+            return self.pose
 
     async def turn_right(self, angle: Union[int, float]):
         """Rotate angle in degrees."""
@@ -447,10 +458,37 @@ class Robot:
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(packet)
-        await completer.wait(self.DEFAULT_TIMEOUT + int(abs(angle) / 100))
+        packet = await completer.wait(self.DEFAULT_TIMEOUT + int(abs(angle) / 100))
+        if self.USE_ROBOT_POSE and packet:
+            return self.pose.set_from_packet(packet)
+        else:
+            self.pose.turn_left(-angle)
+            return self.pose
 
     async def turn_left(self, angle: Union[int, float]):
-        await self.turn_right(-angle)
+        return await self.turn_right(-angle)
+
+    async def reset_navigation(self):
+        """Request that robot resets position and heading."""
+        if self.USE_ROBOT_POSE:
+            await self._backend.write_packet(Packet(1, 15, self.inc))
+        self.pose.set(0, 0, 90)
+
+    async def get_position(self):
+        """Get robot's position and heading.
+        Units:
+            x, y: cm
+            heading: deg
+        """
+        if self.USE_ROBOT_POSE:
+            dev, cmd, inc = 1, 16, self.inc
+            completer = Completer()
+            self._responses[(dev, cmd, inc)] = completer
+            await self._backend.write_packet(Packet(dev, cmd, inc))
+            packet = await completer.wait(self.DEFAULT_TIMEOUT)
+            return self.pose.set_from_packet(packet)
+        else:
+            return self.pose
 
     async def arc(self, direction: int, angle: Union[int, float], radius: Union[int, float]):
         """Drive arc defined by angle in degrees and radius in cm."""
@@ -464,7 +502,13 @@ class Robot:
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
-        await completer.wait(self.DEFAULT_TIMEOUT + int(abs(radius * angle / 573)))
+
+        timeout = abs(radians(angle) * (abs(radius / 10) + 51.5)) / 100
+        packet = await completer.wait(10 + timeout)
+        if self.USE_ROBOT_POSE and packet:
+            return self.pose.set_from_packet(packet)
+        else:
+            return self.pose.arc(angle, radius)
 
     async def set_lights(self, animation: int, color: Color):
         """Set roobt's LEDs to animation with color red, green, blue."""

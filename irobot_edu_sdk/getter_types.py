@@ -4,6 +4,9 @@
 
 import math
 from typing import List
+from struct import unpack
+
+from .packet import Packet
 
 # Getter classes used both for Root's getters and for the params on
 # its event callbacks. These classes are Root specific.
@@ -21,6 +24,31 @@ class Pose:
 
     def turn_left(self, angle):
         self.heading += angle
+
+    def arc(self, angle, radius):
+        angle *= -1
+        radius *= -1
+
+        chord = radius * 2 * math.sin(math.radians(angle/2))
+        self.x += chord * math.cos(math.radians(self.heading + (angle/2)))
+        self.y += chord * math.sin(math.radians(self.heading + (angle/2)))
+
+        self.heading += angle
+
+    def set(self, x, y, heading):
+        self.x = x
+        self.y = y
+        self.heading = heading
+
+    def set_from_packet(self, packet):
+        if packet:
+            payload = packet.payload
+            #timestamp = unpack('>I', payload[0:4])[0]
+            self.x = unpack('>i', payload[4:8])[0] / 10
+            self.y = unpack('>i', payload[8:12])[0] / 10
+            self.heading = unpack('>h', payload[12:14])[0] / 10
+            return self
+        return None
 
     def __str__(self):
         return f"Pose ({self.x}, {self.y}, {self.heading}°)"

@@ -28,6 +28,9 @@ class Create3(Robot):
         # Getters.
         self.ipv4_address = IPv4Addresses()
 
+        # Use Create 3 robot's internal position estimate
+        self.USE_ROBOT_POSE = True
+
     def __enter__(self):
         return self
 
@@ -105,30 +108,6 @@ class Create3(Robot):
 
         return None
 
-    async def get_position(self):
-        """Get robot's position and heading.
-        Units:
-            x, y: cm
-            heading: deg
-        """
-        dev, cmd, inc = 1, 16, self.inc
-        completer = Completer()
-        self._responses[(dev, cmd, inc)] = completer
-        await self._backend.write_packet(Packet(dev, cmd, inc))
-        packet = await completer.wait(self.DEFAULT_TIMEOUT)
-        if packet:
-            payload = packet.payload
-            timestamp = unpack('>I', payload[0:4])[0]
-            x = unpack('>i', payload[4:8])[0] / 10
-            y = unpack('>i', payload[8:12])[0] / 10
-            heading = unpack('>h', payload[12:14])[0] / 10
-            return Pose(x, y, heading)
-        return None
-
-    async def reset_navigation(self):
-        """Request that robot resets position and heading."""
-        await self._backend.write_packet(Packet(1, 15, self.inc))
-
     async def navigate_to(self, x: Union[int, float], y: Union[int, float], heading: Union[int, float] = None):
         """ If heading is None, then it will be ignored, and the robot will arrive to its destination
         pointing towards the direction of the line between the destination and the origin points.
@@ -136,6 +115,7 @@ class Create3(Robot):
             x, y: cm
             heading: deg
         """
+
         if self._disable_motors:
             return
         dev, cmd, inc = 1, 17, self.inc
@@ -148,7 +128,16 @@ class Create3(Robot):
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
         timeout = self.DEFAULT_TIMEOUT + int(math.sqrt(x * x + y * y) / 10) + 4  # 4 is the timeout for a potential rotation.
-        await completer.wait(timeout)
+        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        if self.USE_ROBOT_POSE and packet:
+            return self.pose.set_from_packet(packet)
+        else:
+            if heading is not None:
+                self.pose.set(x, y, heading)
+            else:
+                self.pose.set(x, y, math.degrees(math.atan2(y - self.pose.y, x - self.pose.x)) + self.pose.heading)
+
+            return self.pose
 
     async def dock(self):
         """Request a docking action."""
