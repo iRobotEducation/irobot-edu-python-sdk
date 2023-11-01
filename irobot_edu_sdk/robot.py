@@ -468,6 +468,9 @@ class Robot:
     async def turn_left(self, angle: Union[int, float]):
         return await self.turn_right(-angle)
 
+    async def reset_position(self): # this is the name of the command in the protocol doc
+        return await self.reset_navigation()
+
     async def reset_navigation(self):
         """Request that robot resets position and heading."""
         if self.USE_ROBOT_POSE:
