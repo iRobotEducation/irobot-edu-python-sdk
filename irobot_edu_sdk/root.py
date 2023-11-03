@@ -123,9 +123,9 @@ class Root(Robot):
         await completer.wait(self.DEFAULT_TIMEOUT)
 
     async def set_gravity_compensation(self, gravity: int, amount: Union[int, float]):
-        """Set vertical driving compensation for gravity and amount between 0% and 300%"""
+        """Set vertical driving compensation for gravity and amount between 0% and 100%"""
         gravity = bound(gravity, Root.GRAVITY_OFF, Root.GRAVITY_WHEN_MARKER)
-        amount = bound(int(amount * 10), 0, 3000)
+        amount = bound(int(amount * 10), 0, 1000)
         await self._backend.write_packet(Packet(1, 13, self.inc, pack(">BH", gravity, amount)))
 
     async def compute_movement_to(self, x, y):
