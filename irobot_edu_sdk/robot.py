@@ -506,7 +506,7 @@ class Robot:
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
 
-        timeout = abs(radians(angle) * (abs(radius / 10) + 51.5)) / 100
+        timeout = abs(radians(angle) * (abs(radius * 10) + 51.5)) / 100
         packet = await completer.wait(10 + timeout)
         if self.USE_ROBOT_POSE and packet:
             return self.pose.set_from_packet(packet)
