@@ -51,7 +51,7 @@ class Pose:
         return None
 
     def __str__(self):
-        return f"Pose ({self.x}, {self.y}, {self.heading}°)"
+        return f"Pose ({self.x:.2f}, {self.y:.2f}, {self.heading:.1f}°)"
 
 
 class Movement:
