@@ -62,8 +62,8 @@ class Root(Robot):
         self.color_sensor = ColorSensor()
         self.light_sensors = LightSensors()
 
-        # Use Root robot's internal position estimate #TODO change based on version
-        self.USE_ROBOT_POSE = True
+        # Don't use Root robot's internal position estimate #TODO change based on version
+        self.USE_ROBOT_POSE = False
 
     def __enter__(self):
         return self
