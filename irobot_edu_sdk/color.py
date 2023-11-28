@@ -1,12 +1,12 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
 #
 
 from .utils import bound
 
 
 class Color:
-    # Color sensor contants.
+    # Color sensor constants.
     ANY = -1
     WHITE = 0
     RED = 1

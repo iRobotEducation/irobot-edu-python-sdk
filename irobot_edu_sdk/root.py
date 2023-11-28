@@ -62,7 +62,8 @@ class Root(Robot):
         self.color_sensor = ColorSensor()
         self.light_sensors = LightSensors()
 
-        self.pose = Pose()
+        # Don't use Root robot's internal position estimate #TODO change based on version
+        self.USE_ROBOT_POSE = False
 
     def __enter__(self):
         return self
@@ -106,11 +107,9 @@ class Root(Robot):
 
     async def move(self, distance: Union[int, float]):
         await super().move(distance)
-        self.pose.move(distance)
 
     async def turn_right(self, angle: Union[int, float]):
         await super().turn_right(angle)
-        self.pose.turn_left(-angle)
 
     async def set_marker(self, position: int):
         """Set marker to position of type Marker"""
@@ -124,35 +123,26 @@ class Root(Robot):
         await completer.wait(self.DEFAULT_TIMEOUT)
 
     async def set_gravity_compensation(self, gravity: int, amount: Union[int, float]):
-        """Set vertical driving compensation for gravity and amount between 0% and 300%"""
+        """Set vertical driving compensation for gravity and amount between 0% and 100%"""
         gravity = bound(gravity, Root.GRAVITY_OFF, Root.GRAVITY_WHEN_MARKER)
-        amount = bound(int(amount * 10), 0, 3000)
+        amount = bound(int(amount * 10), 0, 1000)
         await self._backend.write_packet(Packet(1, 13, self.inc, pack(">BH", gravity, amount)))
 
-    # It is async since this command will be implemented in the robot's firmware.
-    async def get_position(self):
-        return self.pose
-
-    async def reset_navigation(self):
-        self.pose.x = 0
-        self.pose.y = 0
-        self.pose.heading = 90
-
-    def compute_movement_to(self, x, y):
+    async def compute_movement_to(self, x, y):
+        await self.get_position()
         dx = x - self.pose.x
         dy = y - self.pose.y
         return Movement(math.sqrt(dx * dx + dy * dy), math.degrees(math.atan2(dy, dx)) - self.pose.heading)
 
-    # TODO: Finish implementation.
     async def navigate_to(self, x: Union[int, float], y: Union[int, float], heading: Union[int, float] = None):
         """ If heading is None, then it will be ignored, and the robot will arrive to its destination
         pointing towards the direction of the line between the destination and the origin points."""
-        movement = self.compute_movement_to(x, y)
+        movement = await self.compute_movement_to(x, y)
         await self.turn_left(Movement.minimize_angle(movement.angle))
         await self.move(movement.distance)
         if heading is not None:
-            # TODO: test.
-            await self.turn_left(Movement.minimize_angle(heading - self.heading))
+            await self.get_position()
+            await self.turn_left(Movement.minimize_angle(heading - self.pose.heading))
 
     async def get_version_string(self) -> str:
         """Get version as a human-readable string."""

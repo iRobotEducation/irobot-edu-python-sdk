@@ -71,8 +71,8 @@ async def touched(robot):
     print('(..) button touched')
     await robot.set_lights(Robot.LIGHT_SPIN, Color(255, 255, 0))
     await robot.move(2)
-    await robot.arc(Robot.DIR_RIGHT, 90, 4)
-    await robot.arc(Robot.DIR_RIGHT, -90, 4)
+    await robot.arc_right(90, 4)
+    await robot.arc_right(-90, 4)
     await robot.move(-2)
 
 
