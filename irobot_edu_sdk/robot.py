@@ -449,10 +449,12 @@ class Robot:
             self.pose.move(distance)
             return self.pose
 
-    async def turn_right(self, angle: Union[int, float]):
+    async def turn(self, direction: int, angle: Union[int, float]):
         """Rotate angle in degrees."""
         if self._disable_motors:
             return
+        if direction == self.DIR_LEFT:
+            angle = -angle
         dev, cmd, inc = 1, 12, self.inc
         packet = Packet(dev, cmd, inc, pack('>i', int(angle * 10)))
         completer = Completer()
@@ -466,7 +468,10 @@ class Robot:
             return self.pose
 
     async def turn_left(self, angle: Union[int, float]):
-        return await self.turn_right(-angle)
+        return await self.turn(self.DIR_LEFT, angle)
+
+    async def turn_right(self, angle: Union[int, float]):
+        return await self.turn(self.DIR_RIGHT, angle)
 
     async def reset_position(self): # this is the name of the command in the protocol doc
         return await self.reset_navigation()
@@ -512,6 +517,12 @@ class Robot:
             return self.pose.set_from_packet(packet)
         else:
             return self.pose.arc(angle, radius)
+
+    async def arc_left(self, angle: Union[int, float], radius: Union[int, float]):
+        await self.arc(self.DIR_LEFT, angle, radius)
+
+    async def arc_right(self, angle: Union[int, float], radius: Union[int, float]):
+        await self.arc(self.DIR_RIGHT, angle, radius)
 
     async def set_lights(self, animation: int, color: Color):
         """Set roobt's LEDs to animation with color red, green, blue."""
