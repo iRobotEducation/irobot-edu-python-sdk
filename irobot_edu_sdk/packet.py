@@ -20,13 +20,14 @@ class Packet():
                  cmd: int,
                  inc: int,
                  payload: bytes = bytes(PAYLOAD_LEN),
-                 crc: Optional[int] = None):
+                 crc: Optional[int] = None,
+                 force_crc: bool = False):
         self.dev = dev
         self.cmd = cmd
         self.inc = inc
         assert len(payload) <= self.PAYLOAD_LEN, "invalid payload length"
         self.payload = payload + bytes(self.PAYLOAD_LEN - len(payload))
-        self._crc = crc
+        self._crc = crc if force_crc is False else self.calc_crc()
 
     @classmethod
     def from_bytes(cls, raw: bytes):
