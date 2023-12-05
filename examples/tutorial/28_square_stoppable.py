@@ -18,7 +18,7 @@ stop = False
 @event(robot.when_bumped, [True, True])
 async def bumped(robot):
     global stop  # Please note the "global" keyword here!
-    await robot.set_lights_rgb(255, 0, 0)
+    await robot.set_lights_on_rgb(255, 0, 0)
     stop = True  # This is what will tell the other loops (running in parallel in other tasks) to stop.
     await robot.stop()  # This method will stop all the robot's actuators.
 
@@ -41,9 +41,9 @@ async def play(robot):
     while True:
         if stop:
             break  # This will stop the while loop!
-        await robot.set_lights_rgb(0, 255, 0)
+        await robot.set_lights_on_rgb(0, 255, 0)
         await robot.wait(0.3)
-        await robot.set_lights_rgb(0, 0, 255)
+        await robot.set_lights_on_rgb(0, 0, 255)
         await robot.wait(0.3)
 
 robot.play()

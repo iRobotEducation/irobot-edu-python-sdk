@@ -1,8 +1,8 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
-# Let's draw a simple spiral using "turtle geometry" commands (turn and move) commands.
+# Let's draw a simple spiral using "turtle geometry" (turn and move) commands.
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
 from irobot_edu_sdk.robots import event, hand_over, Color, Robot, Root, Create3
@@ -14,10 +14,16 @@ robot = Root(Bluetooth())
 
 @event(robot.when_play)
 async def spiral(robot):
-    await robot.set_marker(Root.MARKER_DOWN)  # Will have no effect on Create 3.
-    for i in range(0, 40):
+    STEPS = 20
+    TRANSLATE = 1 #cm
+
+    await robot.set_marker_down()  # Will have no effect on Create 3.
+    for i in range(0, STEPS):
+        print(f"{i / STEPS * 100:.1f}% complete")
+
         await robot.turn_left(2*i + 10)
-        await robot.move(5)
-    await robot.set_marker(Root.MARKER_UP)  # Will have no effect on Create 3.
+        await robot.move(TRANSLATE)
+    await robot.set_marker_and_eraser_up()  # Will have no effect on Create 3.
+    print("Done!")
 
 robot.play()

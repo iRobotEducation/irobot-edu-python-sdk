@@ -12,7 +12,7 @@ robot = Create3(Bluetooth())
 
 @event(robot.when_play)
 async def play(robot):
-    await robot.set_lights_rgb(30, 255, 100)
+    await robot.set_lights_on_rgb(30, 255, 100)
     await robot.play_note(Note.A5, .5)
 
     distance = 16
@@ -22,7 +22,7 @@ async def play(robot):
     await robot.navigate_to(distance, 0)
     await robot.navigate_to(0, 0)
 
-    await robot.set_lights_rgb(30, 100, 255)
+    await robot.set_lights_on_rgb(30, 100, 255)
 
     distance = -distance
 
@@ -31,6 +31,6 @@ async def play(robot):
     await robot.navigate_to(distance, 0)
     await robot.navigate_to(0, 0)
 
-    await robot.set_lights_rgb(30, 255, 100)
+    await robot.set_lights_on_rgb(30, 255, 100)
 
 robot.play()

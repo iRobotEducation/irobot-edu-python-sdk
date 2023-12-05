@@ -14,12 +14,12 @@ th = 150
 
 
 async def forward(robot):
-    await robot.set_lights_rgb(0, 255, 0)
+    await robot.set_lights_on_rgb(0, 255, 0)
     await robot.set_wheel_speeds(speed, speed)
 
 
 async def backoff(robot):
-    await robot.set_lights_rgb(255, 80, 0)
+    await robot.set_lights_on_rgb(255, 80, 0)
     await robot.move(-20)
     await robot.turn_left(45)
 

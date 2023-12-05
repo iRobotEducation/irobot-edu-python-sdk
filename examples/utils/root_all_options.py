@@ -24,14 +24,14 @@ async def print_pos(robot):
 # Please note that the 'robot' parameter is not related with the 'robot' instance: robot is what can be used inside the event's function.
 async def bumped(robot):  # The name of this function can be any valid Python function name.
     print('Left bumper pressed')
-    await robot.set_lights_rgb(255, 0, 0)  # red
+    await robot.set_lights_on_rgb(255, 0, 0)  # red
     await robot.set_wheel_speeds(-speed, speed)
 
 
 @event(robot.when_bumped, [False, True])
 async def bumped(robot):
     print('Right bumper pressed')
-    await robot.set_lights_rgb(0, 255, 0)  # green.
+    await robot.set_lights_on_rgb(0, 255, 0)  # green.
     await robot.set_wheel_speeds(speed, -speed)
 
 
@@ -63,7 +63,7 @@ async def touched(robot):
                             False, False])
 async def touched(robot):
     print('Front-left sensor touched (task 2)')
-    await robot.set_marker(robot.MARKER_DOWN)
+    await robot.set_marker(robot.MarkerPos.DOWN)
     await robot.turn_right(90)
     await robot.navigate_to(5, 10)
     await print_pos(robot)
@@ -75,7 +75,7 @@ async def touched(robot):
                             False, False])
 async def touched(robot):
     print('Front-right sensor touched')
-    await robot.set_lights(Robot.LIGHT_SPIN, Color(255, 255, 0))
+    await robot.set_lights_spin_rgb(255, 255, 0)
     await robot.move(2)
     await robot.arc_right(90, 4)
     await robot.arc_right(-90, 4)
@@ -86,20 +86,20 @@ async def touched(robot):
                             True, False])
 async def touched(robot):
     print('Rear-left sensor touched')
-    await robot.set_marker(robot.MARKER_UP)
+    await robot.set_marker(robot.MarkerPos.UP)
 
 
 @event(robot.when_touched, [False, False,
                             False, True])
 async def touched(robot):
     print('Rear-right sensor touched')
-    await robot.set_marker(robot.MARKER_DOWN)
+    await robot.set_marker(robot.MarkerPos.DOWN)
 
 
 @event(robot.when_play)
 async def play(robot):
     print('play 1')
-    await robot.set_lights_rgb(100, 100, 255)
+    await robot.set_lights_on_rgb(100, 100, 255)
 
 
 @event(robot.when_play)
@@ -118,9 +118,9 @@ async def play(robot):
 async def play(robot):
     print('play 2')
     for _ in range(4):
-        await robot.set_lights_rgb(100, 100, 255)
+        await robot.set_lights_on_rgb(100, 100, 255)
         await robot.wait(1)
-        await robot.set_lights_rgb(0, 255, 80)
+        await robot.set_lights_on_rgb(0, 255, 80)
         await robot.wait(1)
 
 
