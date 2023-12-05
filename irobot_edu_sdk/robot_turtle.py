@@ -65,7 +65,7 @@ class RobotTurtle:
         self._robot = robot  # if robot else FakeRobot()
         # TODO: state that might should be stored elsewhere, like robot object...
         self._mode = 'standard'  # imprecise; see notes above and Python Turtle documentation for more
-        self._marker_state = Root.MARKER_UP
+        self._marker_state = Root.MarkerPos.UP
         # Note: as of this writing only the Root has a `pose` field; duplicate here;
         if hasattr(self._robot, 'pose'):
             self._pose = self._robot.pose
@@ -185,14 +185,14 @@ class RobotTurtle:
     # Movement functions are synchronous and can be called interactively or from main().
     # Blocks until complete due to queue.join()
 
-    # Put the pen down. Note well: Turtle has the equivalent of MARKER_DOWN by default, but Root doesn't
+    # Put the pen down. Note well: Turtle has the equivalent of Root.MarkerPos.DOWN by default, but Root doesn't
     # This has no effect on robots without Pen, such as Create3
     def pendown(self):
         """Set the robot pen to the down (marking) position. Only supported on some robot families."""
         if hasattr(self._robot, 'set_marker'):
-            self._enqueue_action(self._robot.set_marker, Root.MARKER_DOWN)
+            self._enqueue_action(self._robot.set_marker, Root.MarkerPos.DOWN)
             # Store new state locally as a field. TODO: replace with getter function from actual robot object.
-            self._marker_state = Root.MARKER_DOWN
+            self._marker_state = Root.MarkerPos.DOWN
         else:
             self._logger.debug('Robot %s has no set_marker support; ignoring request', self._robot.__class__.__name__)
 
@@ -202,9 +202,9 @@ class RobotTurtle:
     def penup(self):
         """Set the robot pen to the up (non-marking) position. Only supported on some robot families."""
         if hasattr(self._robot, 'set_marker'):
-            self._enqueue_action(self._robot.set_marker, Root.MARKER_UP)
+            self._enqueue_action(self._robot.set_marker, Root.MarkerPos.UP)
             # Store new state locally as a field. TODO: replace with getter function from actual robot object.
-            self._marker_state = Root.MARKER_UP
+            self._marker_state = Root.MarkerPos.UP
         else:
             self._logger.debug('Robot %s has no set_marker support; ignoring request', self._robot.__class__.__name__)
 
@@ -213,7 +213,7 @@ class RobotTurtle:
     # Make a dot at the current location
     def dot(self):
         # If the marker is already down, `dot()` should do nothing
-        if self._marker_state == Root.MARKER_DOWN:
+        if self._marker_state == Root.MarkerPos.DOWN:
             return
         else:
             self.pendown()
@@ -222,7 +222,7 @@ class RobotTurtle:
     # TODO: need getter function from actual Robot object
     def isdown(self):
         """Return a boolean representing whether the marker is down (True) or up (False)"""
-        return self._marker_state == Root.MARKER_DOWN
+        return self._marker_state == Root.MarkerPos.DOWN
 
     def forward(self, centimeters):
         """Command the robot to move forward by specified distance in cm."""
@@ -254,15 +254,15 @@ class RobotTurtle:
 
     def turn(self, degrees, direction):
         """Command the robot to turn in the specified amount in the specified direction, in degrees.
-           Direction should be one of Robot.DIR_LEFT or Robot.DIR_RIGHT"""
-        if direction == Robot.DIR_LEFT:
+           Direction should be one of Robot.Dir.LEFT or Robot.Dir.RIGHT"""
+        if direction == Robot.Dir.LEFT:
             self._enqueue_action(self._robot.turn_left, degrees)
             self._maybe_update_pose_turn_left(degrees)
-        elif direction == Robot.DIR_RIGHT:
+        elif direction == Robot.Dir.RIGHT:
             self._enqueue_action(self._robot.turn_right, degrees)
             self._maybe_update_pose_turn_left(-degrees)
         else:
-            self._logger.error('turn() direction should be Robot.DIR_LEFT or Robot.DIR_RIGHT; got %s', direction)
+            self._logger.error('turn() direction should be Robot.Dir.LEFT or Robot.Dir.RIGHT; got %s', direction)
             return
 
     def circle(self, radius, extent=360, steps=None):
@@ -277,9 +277,9 @@ class RobotTurtle:
             self._logger.error('circle() radius must be not be 0')
             return
         elif radius > 0:
-            direction = Robot.DIR_LEFT
+            direction = Robot.Dir.LEFT
         else:
-            direction = Robot.DIR_RIGHT
+            direction = Robot.Dir.RIGHT
         if extent is None:
             extent = 360
         if extent <= 0:
@@ -295,7 +295,7 @@ class RobotTurtle:
             edge_len = 2 * abs(radius) * math.sin(math.pi / steps * extent / 360)
             turn_degrees = extent / steps
             self._logger.error('circle(): turning total %s degrees in %s steps of %s cm at angle of %s to the %s',
-                               extent, steps, edge_len, turn_degrees, 'right' if direction == Robot.DIR_RIGHT else 'left')
+                               extent, steps, edge_len, turn_degrees, 'right' if direction == Robot.Dir.RIGHT else 'left')
             for ii in range(steps):
                 self.forward(edge_len)
                 self.turn(turn_degrees, direction)

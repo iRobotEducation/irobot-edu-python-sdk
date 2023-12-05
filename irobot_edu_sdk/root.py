@@ -3,6 +3,7 @@
 #
 
 import math
+from enum import IntEnum
 from typing import Union, Callable, Awaitable, List
 from struct import pack, unpack
 from .backend.backend import Backend
@@ -18,36 +19,76 @@ class Root(Robot):
     """Root robot object"""
 
     # Marker/eraser.
-    MARKER_UP = 0
-    MARKER_DOWN = 1
-    MARKER_ERASE = 2
+    class MarkerPos(IntEnum):
+        UP = 0
+        DOWN = 1
+        ERASE = 2
 
     # Light sensor.
-    LIGHT_UNKNOWN = 0
-    LIGHT_DARKER = 4
-    LIGHT_RIGHT_BRIGHTER_THAN_LEFT = 5
-    LIGHT_LEFT_BRIGHTER_THAN_RIGHT = 6
-    LIGHT_BRIGHTER = 7
+    class LightEvent(IntEnum):
+        UNKNOWN = 0
+        DARKER = 4
+        RIGHT_BRIGHTER_THAN_LEFT = 5
+        LEFT_BRIGHTER_THAN_RIGHT = 6
+        BRIGHTER = 7
 
     # Gravity compensation.
-    GRAVITY_OFF = 0
-    GRAVITY_ON = 1
-    GRAVITY_WHEN_MARKER = 2
+    class GravityComp(IntEnum):
+        OFF = 0
+        ON = 1
+        WHEN_MARKER = 2
 
     # Color sensor.
-    COLOR_LIGHTING_OFF = 0
-    COLOR_LIGHTING_RED = 1
-    COLOR_LIGHTING_GREEN = 2
-    COLOR_LIGHTING_BLUE = 3
-    COLOR_LIGHTING_ALL = 4
+    class ColorLighting(IntEnum):
+        OFF = 0
+        RED = 1
+        GREEN = 2
+        BLUE = 3
+        ALL = 4
 
-    COLOR_FORMAT_ADC_COUNTS = 0
-    COLOR_FORMAT_MILLIVOLTS = 1
+    class ColorFormat(IntEnum):
+        ADC_COUNTS = 0
+        MILLIVOLTS = 1
 
-    COLOR_SENSORS_0_TO_7 = 0
-    COLOR_SENSORS_8_TO_15 = 1
-    COLOR_SENSORS_16_TO_23 = 2
-    COLOR_SENSORS_24_TO_31 = 3
+    class ColorBank(IntEnum):
+        BANK_0_TO_7 = 0
+        BANK_8_TO_15 = 1
+        BANK_16_TO_23 = 2
+        BANK_24_TO_31 = 3
+
+    class ColorID(IntEnum):
+        # Note: the Root robot color sensor uses an HSI color space.
+        # Precedence is given to detemining WHITE, BLACK, LOW_INT(ENSITY), and LOW_SAT(URATION), at which point hue is determined.
+        # The hues are defined in the following color wheel order:
+        # RED, ORANGE, YELLOW, LIME, GREEN, CYAN, BLUE, VIOLET, MAGENTA, CERISE
+        ANY = -1
+        WHITE = 0
+        BLACK = 1
+        RED = 2
+        GREEN = 3
+        BLUE = 4
+        # colors below are not supported
+        ORANGE = 5
+        RED_YELLOW = 5
+        YELLOW_RED = 5
+        YELLOW = 6
+        MAGENTA = 7
+        LIME = 8
+        YELLOW_GREEN = 8
+        GREEN_YELLOW = 8
+        CYAN = 9
+        GREEN_BLUE = 9
+        BLUE_GREEN = 9
+        VIOLET = 10
+        BLUE_MAGENTA = 10
+        MAGENTA_BLUE = 10
+        CERISE = 11
+        MAGENTA_RED = 11
+        RED_MAGENTA = 11
+        LOW_INT = 13
+        LOW_INTENSITY = 13
+        LOW_SAT = 14
+        LOW_SATURATION = 14
 
     def __init__(self, backend: Backend):
         super().__init__(backend=backend)
@@ -62,7 +103,7 @@ class Root(Robot):
         self.color_sensor = ColorSensor()
         self.light_sensors = LightSensors()
 
-        # Don't use Root robot's internal position estimate #TODO change based on version
+        # Use Root robot's internal position estimate #TODO change based on version
         self.USE_ROBOT_POSE = False
 
     def __enter__(self):
@@ -116,15 +157,30 @@ class Root(Robot):
         if self._disable_motors:
             return
         dev, cmd, inc = 2, 0, self.inc
-        payload = bytes([bound(position, Root.MARKER_UP, Root.MARKER_ERASE)])
+        payload = bytes([bound(position, self.MarkerPos.UP, self.MarkerPos.ERASE)])
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
         await completer.wait(self.DEFAULT_TIMEOUT)
 
+    async def set_marker_up(self):
+        await self.set_marker(self.MarkerPos.UP)
+
+    async def set_marker_down(self):
+        await self.set_marker(self.MarkerPos.DOWN)
+
+    async def set_eraser_down(self):
+        await self.set_marker(self.MarkerPos.ERASE)
+
+    async def set_marker_and_eraser_up(self):
+        await self.set_marker(self.MarkerPos.UP)
+
+    async def set_eraser_up(self):
+        await self.set_marker(self.MarkerPos.UP)
+
     async def set_gravity_compensation(self, gravity: int, amount: Union[int, float]):
         """Set vertical driving compensation for gravity and amount between 0% and 100%"""
-        gravity = bound(gravity, Root.GRAVITY_OFF, Root.GRAVITY_WHEN_MARKER)
+        gravity = bound(gravity, Root.GravityComp.OFF, Root.GravityComp.WHEN_MARKER)
         amount = bound(int(amount * 10), 0, 1000)
         await self._backend.write_packet(Packet(1, 13, self.inc, pack(">BH", gravity, amount)))
 

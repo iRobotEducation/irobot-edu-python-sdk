@@ -8,6 +8,7 @@ try:
 except ImportError:
     import uasyncio as asyncio
 
+from enum import IntEnum
 from struct import pack, unpack
 from math import radians
 from .completer import Completer
@@ -34,29 +35,34 @@ class Robot:
     MAX_SPEED = 500  # cm/s
 
     # Direction.
-    DIR_LEFT = 0
-    DIR_RIGHT = 1
+    class Dir(IntEnum):
+        LEFT = 0
+        RIGHT = 1
 
     # LED lights.
-    LIGHT_OFF = 0
-    LIGHT_ON = 1
-    LIGHT_BLINK = 2
-    LIGHT_SPIN = 3
+    class LightPattern(IntEnum):
+        OFF = 0
+        ON = 1
+        BLINK = 2
+        SPIN = 3
 
     # For the stall event.
-    MOTOR_LEFT = 0
-    MOTOR_RIGHT = 1
-    MOTOR_MARKER = 2  # Reserved for robots with a physical marker.
-    ERROR_NO_STALL = 0
+    class StallMotor(IntEnum):
+        LEFT = 0
+        RIGHT = 1
+        MARKER = 2  # Reserved for robots with a physical marker.
 
-    ERROR_OVER_CURRENT = 1
-    ERROR_UNDER_CURRENT = 2
-    ERROR_UNDER_SPEED = 3
-    ERROR_SATURATED_PID = 4
-    ERROR_TIMEOUT = 5
+    class StallCause(IntEnum):
+        NO_STALL = 0
+        OVER_CURRENT = 1
+        UNDER_CURRENT = 2
+        UNDER_SPEED = 3
+        SATURATED_PID = 4
+        TIMEOUT = 5
 
-    # Whether or not the local pose estimate should use the robot's estimate or calculate locally
-    USE_ROBOT_POSE = False
+    # Empty class for containing robot-specific variables
+    class Vars:
+        pass
 
     def __init__(self, backend: Backend):
         self._backend = backend
@@ -97,6 +103,15 @@ class Robot:
         self.cliff_sensor = CliffSensor()
 
         self.sound_enabled = True
+
+        # Whether or not the local pose estimate should use the robot's estimate or calculate locally
+        self.USE_ROBOT_POSE = False
+        # Default to no turn angle compensation
+        self._turn_scale_comp = 1.0 # percentage of turn to scale input
+        self._turn_bias_comp = 0.0  # percentage of absolute value of turn angle to add to turn
+
+        # Initialize class to hold robot-specific variables
+        self.vars = self.Vars()
 
         # Catch all signals and direct to the _exit_handler
         signal.signal(signal.SIGINT, _exit_handler)
@@ -453,8 +468,13 @@ class Robot:
         """Rotate angle in degrees."""
         if self._disable_motors:
             return
-        if direction == self.DIR_LEFT:
+        if direction == self.Dir.LEFT:
             angle = -angle
+
+        if self.USE_ROBOT_POSE == False:
+            angle *= self._turn_scale_comp
+            angle += abs(angle) * self._turn_bias_comp
+
         dev, cmd, inc = 1, 12, self.inc
         packet = Packet(dev, cmd, inc, pack('>i', int(angle * 10)))
         completer = Completer()
@@ -468,10 +488,10 @@ class Robot:
             return self.pose
 
     async def turn_left(self, angle: Union[int, float]):
-        return await self.turn(self.DIR_LEFT, angle)
+        return await self.turn(self.Dir.LEFT, angle)
 
     async def turn_right(self, angle: Union[int, float]):
-        return await self.turn(self.DIR_RIGHT, angle)
+        return await self.turn(self.Dir.RIGHT, angle)
 
     async def reset_position(self): # this is the name of the command in the protocol doc
         return await self.reset_navigation()
@@ -503,7 +523,7 @@ class Robot:
         if self._disable_motors:
             return
         dev, cmd, inc = 1, 27, self.inc
-        if direction == Robot.DIR_LEFT:
+        if direction == Robot.Dir.LEFT:
             angle = -angle
             radius = -radius
         payload = pack('>ii', int(angle * 10), int(radius * 10))
@@ -512,29 +532,41 @@ class Robot:
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
 
         timeout = abs(radians(angle) * (abs(radius * 10) + 51.5)) / 100
-        packet = await completer.wait(10 + timeout)
+        packet = await completer.wait(15 + timeout)
         if self.USE_ROBOT_POSE and packet:
             return self.pose.set_from_packet(packet)
         else:
             return self.pose.arc(angle, radius)
 
     async def arc_left(self, angle: Union[int, float], radius: Union[int, float]):
-        await self.arc(self.DIR_LEFT, angle, radius)
+        await self.arc(self.Dir.LEFT, angle, radius)
 
     async def arc_right(self, angle: Union[int, float], radius: Union[int, float]):
-        await self.arc(self.DIR_RIGHT, angle, radius)
+        await self.arc(self.Dir.RIGHT, angle, radius)
 
-    async def set_lights(self, animation: int, color: Color):
-        """Set roobt's LEDs to animation with color red, green, blue."""
-        animation = bound(animation, Robot.LIGHT_OFF, Robot.LIGHT_SPIN)
+    async def set_lights(self, animation: int, color: Color = Color(255, 255, 255)):
+        """Set robot's LEDs to animation with color red, green, blue."""
+        animation = bound(animation, Robot.LightPattern.OFF, Robot.LightPattern.SPIN)
         color.red = bound(color.red, 0, 255)
         color.green = bound(color.green, 0, 255)
         color.blue = bound(color.blue, 0, 255)
         payload = bytes([animation, color.red, color.green, color.blue])
         await self._backend.write_packet(Packet(3, 2, self.inc, payload))
 
+    async def set_lights_off(self):
+        await self.set_lights(Robot.LightPattern.OFF)
+
     async def set_lights_rgb(self, red: int, green: int, blue: int):
-        await self.set_lights(Robot.LIGHT_ON, Color(red, green, blue))
+        await self.set_lights(Robot.LightPattern.ON, Color(red, green, blue))
+
+    async def set_lights_on_rgb(self, red: int, green: int, blue: int):
+        await self.set_lights(Robot.LightPattern.ON, Color(red, green, blue))
+
+    async def set_lights_blink_rgb(self, red: int, green: int, blue: int):
+        await self.set_lights(Robot.LightPattern.BLINK, Color(red, green, blue))
+
+    async def set_lights_spin_rgb(self, red: int, green: int, blue: int):
+        await self.set_lights(Robot.LightPattern.SPIN, Color(red, green, blue))
 
     async def play_note(self, frequency: Union[float, int], duration: Union[float, int]):
         """Play note with frequency in hertz for duration in seconds."""
@@ -544,6 +576,9 @@ class Robot:
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
         await completer.wait(self.DEFAULT_TIMEOUT + int(abs(duration)))
+
+    async def play_tone(self, frequency: Union[float, int], duration: Union[float, int]):
+        await self.play_note(frequency, duration)
 
     # async def play_sweep(
     #    self,

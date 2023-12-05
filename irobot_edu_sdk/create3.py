@@ -3,6 +3,7 @@
 #
 
 import math
+from enum import IntEnum
 from typing import Union
 from struct import pack, unpack
 from .backend.backend import Backend
@@ -16,11 +17,14 @@ from .robot import Robot
 class Create3(Robot):
     """Create 3 robot object."""
 
-    DOCK_STATUS_SUCCEEDED = 0
-    DOCK_STATUS_ABORTED   = 1
-    DOCK_STATUS_CANCELED  = 2
-    DOCK_RESULT_UNDOCKED = 0
-    DOCK_RESULT_DOCKED   = 1
+    class DockStatus(IntEnum):
+        SUCCEEDED = 0
+        ABORTED   = 1
+        CANCELED  = 2
+
+    class DockResult(IntEnum):
+        UNDOCKED = 0
+        DOCKED   = 1
 
     def __init__(self, backend: Backend):
         super().__init__(backend=backend)
@@ -148,7 +152,7 @@ class Create3(Robot):
         packet = await completer.wait(60)
         if packet:
             unpacked = unpack('>IBBHHHHH', packet.payload)
-            return {'timestamp': unpacked[0], 'status': unpacked[1], 'result': unpacked[2]}
+            return {'timestamp': unpacked[0], 'status': self.DockStatus(unpacked[1]), 'result': self.DockResult(unpacked[2])}
         return None
 
     async def undock(self):
@@ -160,7 +164,7 @@ class Create3(Robot):
         packet = await completer.wait(30)
         if packet:
             unpacked = unpack('>IBBHHHHH', packet.payload)
-            return {'timestamp': unpacked[0], 'status': unpacked[1], 'result': unpacked[2]}
+            return {'timestamp': unpacked[0], 'status': self.DockStatus(unpacked[1]), 'result': self.DockResult(unpacked[2])}
         return None
 
     async def get_docking_values(self):
