@@ -61,7 +61,8 @@ class Root(Robot):
         # Precedence is given to detemining WHITE, BLACK, LOW_INT(ENSITY), and LOW_SAT(URATION), at which point hue is determined.
         # The hues are defined in the following color wheel order:
         # RED, ORANGE, YELLOW, LIME, GREEN, CYAN, BLUE, VIOLET, MAGENTA, CERISE
-        ANY = -1
+        SKIP = -1
+        IGNORE = -1
         WHITE = 0
         BLACK = 1
         RED = 2
@@ -115,16 +116,19 @@ class Root(Robot):
     # Event Handlers.
 
     async def _when_color_scanned_handler(self, packet: Packet):
+        self.color_sensor.colors = [Root.ColorID(c >> i & 0xF) for c in packet.payload for i in range(4, -1, -4)]
+
         for event in self._when_color_scanned:
-            self.color_sensor.colors = [c >> i & 0xF for c in packet.payload for i in range(4, -1, -4)]
-            # TODO: Add trigger.
-            await event.run(self)
+            # Trigger matching events based on parsed colors
+            if self.color_sensor.matches(event.condition) or event.condition.colors == []:
+                await event.run(self)
 
     async def _when_light_seen_handler(self, packet: Packet):
+        self.light_sensors.state = packet.payload[4]
+        self.light_sensors.left = unpack(">H", packet.payload[5:7])[0]
+        self.light_sensors.right = unpack(">H", packet.payload[7:9])[0]
+
         for event in self._when_light_seen:
-            self.light_sensors.state = packet.payload[4]
-            self.light_sensors.left = unpack(">H", packet.payload[5:7])[0]
-            self.light_sensors.right = unpack(">H", packet.payload[7:9])[0]
             if len(event.condition) == 1:
                 if event.condition[0] == self.light_sensors.state:
                     await event.run(self)
@@ -134,7 +138,7 @@ class Root(Robot):
     def when_color_scanned(self, condition: list[List[int]], callback: Callable[[ColorSensor], Awaitable[None]]):
         """Register when color callback of type async def fn(colors:
         List[Color])"""
-        self._when_color_scanned.append(Event(condition, callback))
+        self._when_color_scanned.append(Event(ColorSensor(condition), callback))
 
     def when_light_seen(self, condition: list[int, int, int], callback: Callable[[LightSensors], Awaitable[None]]):
         """Register when light callback of type: async def fn(state: Light, left_mV: int, right_mV: int)"""
@@ -226,3 +230,36 @@ class Root(Robot):
             (l, r) = unpack('>HH', payload[4:8])
             return (l / 1000, r / 1000) # normalize between 0 and 1
         return None
+
+    async def get_color_section(self, bank: ColorBank, lighting: ColorLighting, data_format: ColorFormat):
+        """Returns tuple with color sensor data from one bank of 8 sensors"""
+        dev, cmd, inc = 4, 1, self.inc
+        bank = bound(bank, Root.ColorBank.BANK_0_TO_7, Root.ColorBank.BANK_24_TO_31)
+        lighting = bound(lighting, Root.ColorLighting.OFF, Root.ColorLighting.ALL)
+        data_format = bound(data_format, Root.ColorFormat.ADC_COUNTS, Root.ColorFormat.MILLIVOLTS)
+        completer = Completer()
+        self._responses[(dev, cmd, inc)] = completer
+        await self._backend.write_packet(Packet(dev, cmd, inc, pack(">BBB", bank, lighting, data_format)))
+
+        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        if packet:
+            payload = packet.payload
+            values = unpack('>HHHHHHHH', payload[0:16])
+            return values
+        else:
+            return None
+
+    async def get_color_values(self, lighting: ColorLighting, data_format: ColorFormat):
+        '''Returns tuple with color sensor data from left to right for a given lighting condition'''
+        values = []
+        for bank in Root.ColorBank:
+            section = await self.get_color_section(bank, lighting, data_format)
+            if section:
+                values += list(section)
+            else:
+                return None
+        return tuple(values)
+
+    async def get_color_ids(self): # no need for this to be async except consistency
+        '''Returns list of most recently seen color sensor IDs, or None if no event has happened yet'''
+        return self.color_sensor.colors if self.color_sensor.colors != [] else None
