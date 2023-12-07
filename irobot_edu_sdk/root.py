@@ -260,6 +260,12 @@ class Root(Robot):
                 return None
         return tuple(values)
 
-    async def get_color_ids(self): # no need for this to be async except consistency
+    def get_color_ids_cached(self):
         '''Returns list of most recently seen color sensor IDs, or None if no event has happened yet'''
-        return self.color_sensor.colors if self.color_sensor.colors != [] else None
+        return tuple(self.color_sensor.colors) if self.color_sensor.colors != [] else None
+
+    async def get_color_ids(self):
+        '''Returns list of most recently seen color sensor IDs, or None if no event has happened yet.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_color_ids_cached()

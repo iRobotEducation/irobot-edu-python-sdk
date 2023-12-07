@@ -212,17 +212,18 @@ class Robot:
 
     async def _when_motor_stalled_handler(self, packet: Packet):
         self._disable_motors = True
+        self.motor_stall.motor = packet.payload[4]
+        self.motor_stall.cause = packet.payload[5]
+
         for event in self._when_motor_stalled:
-            self.motor_stall.motor = packet.payload[4]
-            self.motor_stall.cause = packet.payload[5]
             await event.run(self)
 
     async def _when_bumped_handler(self, packet: Packet):
-        for event in self._when_bumped:
-            if len(packet.payload) > 4:
-                self.bumpers.left = packet.payload[4] & 0x80 != 0
-                self.bumpers.right = packet.payload[4] & 0x40 != 0
+        if len(packet.payload) > 4:
+            self.bumpers.left = packet.payload[4] & 0x80 != 0
+            self.bumpers.right = packet.payload[4] & 0x40 != 0
 
+            for event in self._when_bumped:
                 # An empty condition list means to trigger the event on every occurrence.
                 if (not event.condition and self.bumpers.left) or (not event.condition and self.bumpers.right):  # Any.
                     await event.run(self)
@@ -231,19 +232,21 @@ class Robot:
                     await event.run(self)
 
     async def _when_battery_handler(self, packet: Packet):
+        self.battery.millivolts = unpack('>H', packet.payload[4:6])[0]
+        self.battery.percent = packet.payload[6]
+
         for event in self._when_battery:
-            self.battery.millivolts = unpack('>H', packet.payload[4:6])[0]
-            self.battery.percent = packet.payload[6]
             # TODO: Add trigger? Probably not necessary.
             await event.run(self)
 
     async def _when_touched_handler(self, packet: Packet):
-        for event in self._when_touched:
-            if len(packet.payload) > 4:
-                self.touch_sensors.front_left = packet.payload[4] & 0x80 != 0
-                self.touch_sensors.front_right = packet.payload[4] & 0x40 != 0
-                self.touch_sensors.back_right = packet.payload[4] & 0x20 != 0
-                self.touch_sensors.back_left = packet.payload[4] & 0x10 != 0
+        if len(packet.payload) > 4:
+            self.touch_sensors.front_left = packet.payload[4] & 0x80 != 0
+            self.touch_sensors.front_right = packet.payload[4] & 0x40 != 0
+            self.touch_sensors.back_right = packet.payload[4] & 0x20 != 0
+            self.touch_sensors.back_left = packet.payload[4] & 0x10 != 0
+
+            for event in self._when_touched:
                 # An empty condition list means to trigger the event on every occurrence.
                 not_condition = not event.condition
                 any = (not_condition and self.touch_sensors.front_left) or (not_condition and self.touch_sensors.front_right) or (
@@ -263,6 +266,7 @@ class Robot:
 
     async def _when_cliff_sensor_handler(self, packet: Packet):
         self.cliff_sensor.disable_motors = packet.payload[4] != 0
+
         for event in self._when_cliff_sensor:
             # TODO: Add trigger
             await event.run(self)
@@ -627,6 +631,16 @@ class Robot:
                 await completer.wait(self.DEFAULT_TIMEOUT + len(payload))
                 break
 
+    def get_bumpers_cached(self):
+        '''Returns list of most recently seen bumper state, or None if no event has happened yet'''
+        return (self.bumpers.left, self.bumpers.right)
+
+    async def get_bumpers(self):
+        '''Returns list of most recently seen bumper state, or None if no event has happened yet.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_bumpers_cached()
+
     async def get_accelerometer(self):
         """Get instantaneous accelerometer values"""
         dev, cmd, inc = 16, 1, self.inc
@@ -641,3 +655,14 @@ class Robot:
             (x,y,z) = unpack('>hhh', payload[4:10])
             return (x,y,z)
         return None
+
+    def get_touch_sensors_cached(self):
+        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet'''
+        return (self.touch_sensors.front_left, self.touch_sensors.front_right,
+                self.touch_sensors.back_left,  self.touch_sensors.back_right)
+
+    async def get_touch_sensors(self):
+        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_touch_sensors_cached()
