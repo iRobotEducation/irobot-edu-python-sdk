@@ -2,6 +2,8 @@
 # Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2023 iRobot Corporation. All rights reserved.
 #
 
+# A simple example to learn about color sensor getters.
+
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
 from irobot_edu_sdk.robots import event, hand_over, Robot, Root
 ColorID = Root.ColorID
