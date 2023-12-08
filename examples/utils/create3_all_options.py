@@ -37,7 +37,7 @@ async def bumped(robot):
 
 @event(robot.when_bumped, [True, True])
 async def bumped(robot):
-    print('Any bumper pressed')
+    print('Any bumper pressed; bumper state is', await robot.get_bumpers())
 
 
 @event(robot.when_bumped, [True, True])
@@ -54,7 +54,7 @@ async def touched(robot):
 
 @event(robot.when_touched, [True, True])
 async def touched(robot):
-    print('Any button pressed')
+    print('Any button sensor touched; touch state is', await robot.get_touch_sensors())
 
 
 @event(robot.when_touched, [True, False])  # (.) button

@@ -3,8 +3,9 @@
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
-from irobot_edu_sdk.robots import event, hand_over, Color, Robot, Root, Create3
+from irobot_edu_sdk.robots import event, hand_over, Color, Robot, Root
 from irobot_edu_sdk.music import Note
+ColorID = Root.ColorID
 
 # robot is the instance of the robot that will allow us to call its methods and to define events with the @event decorator.
 robot = Root(Bluetooth())  # Will connect to the first robot found.
@@ -37,7 +38,7 @@ async def bumped(robot):
 
 @event(robot.when_bumped, [True, True])
 async def bumped(robot):
-    print('Any bumper pressed')
+    print('Any bumper pressed; bumper state is', await robot.get_bumpers())
 
 
 @event(robot.when_bumped, [True, True])
@@ -51,12 +52,18 @@ async def bumped(robot):
                             False, False])  # Back touch sensors.
 async def touched(robot):
     print('Front-left sensor touched (task 1)')
+    print('Raw Color Sensor Values')
+    for c in Root.ColorLighting:
+        print(c, await robot.get_color_values(c, Root.ColorFormat.ADC_COUNTS))
+
+    print('Parsed Color Sensor Values')
+    print("IDs", await robot.get_color_ids())
 
 
 @event(robot.when_touched, [True, True,
                             True, True])
 async def touched(robot):
-    print('Any touch sensor touched')
+    print('Any touch sensor touched; touch state is', await robot.get_touch_sensors())
 
 
 @event(robot.when_touched, [True, False,
@@ -94,6 +101,36 @@ async def touched(robot):
 async def touched(robot):
     print('Rear-right sensor touched')
     await robot.set_marker(robot.MarkerPos.DOWN)
+
+
+@event(robot.when_color_scanned, [ColorID.GREEN])
+async def left(robot):
+    print("Color sensor sees green!")
+
+
+@event(robot.when_color_scanned, [ColorID.BLUE])
+async def left(robot):
+    print("Color sensor sees blue!")
+
+
+@event(robot.when_color_scanned, [ColorID.RED])
+async def left(robot):
+    print("Color sensor sees red!")
+
+
+@event(robot.when_color_scanned, [ColorID.BLACK])
+async def left(robot):
+    print("Color sensor sees black!")
+
+
+@event(robot.when_light_seen, [Root.LightEvent.DARKER])
+async def dark(robot):
+    print('Things got darker; sensor values are', await robot.get_light_values())
+
+
+@event(robot.when_light_seen, [Root.LightEvent.BRIGHTER])
+async def bright(robot):
+    print('Things got brighter; sensor values are', await robot.get_light_values())
 
 
 @event(robot.when_play)
