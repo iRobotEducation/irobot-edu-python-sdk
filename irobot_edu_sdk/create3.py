@@ -3,14 +3,15 @@
 #
 
 import math
-from enum import IntEnum
-from typing import Union
+from enum import IntEnum, IntFlag
+from typing import Union, Callable, Awaitable, List
 from struct import pack, unpack
 from .backend.backend import Backend
+from .event import Event
 from .completer import Completer
 from .packet import Packet
 from .utils import bound
-from .getter_types import IPv4Addresses, IrProximity, Pose
+from .getter_types import IPv4Addresses, IrProximity, Pose, DockingSensor
 from .robot import Robot
 
 
@@ -26,11 +27,17 @@ class Create3(Robot):
         UNDOCKED = 0
         DOCKED   = 1
 
+
     def __init__(self, backend: Backend):
         super().__init__(backend=backend)
 
+        self._events[(19, 0)] = self._when_docking_sensor_handler
+
+        self._when_docking_sensor: list[Event] = []
+
         # Getters.
         self.ipv4_address = IPv4Addresses()
+        self.docking_sensor = DockingSensor()
 
         # Use Create 3 robot's internal position estimate
         self.USE_ROBOT_POSE = True
@@ -40,6 +47,27 @@ class Create3(Robot):
 
     def __exit__(self, exc_type, exc_value, traceback):
         pass
+
+    # Event Handlers.
+
+    async def _when_docking_sensor_handler(self, packet):
+        if len(packet.payload) > 4:
+            self.docking_sensor.contacts = packet.payload[4] != 0
+            self.docking_sensor.sensors = (packet.payload[5],
+                                           packet.payload[6],
+                                           packet.payload[7])
+
+            for event in self._when_docking_sensor:
+                # TODO: Generate triggers instead of just firing for any event
+                # TODO: Define dock sensor Enum
+                await event.run(self)
+
+    # Event Callbacks.
+
+    def when_docking_sensor(self, callback: Callable[[bool], Awaitable[None]]):
+        self._when_docking_sensor.append(Event(True, callback))
+
+    # Commands.
 
     async def get_ipv4_address(self) -> IPv4Addresses:
         """Get the robot's ipv4 address as a IPv4Addresses, which contains wlan0, wlan1 and usb0. Returns None if anything went wrong."""
@@ -169,6 +197,7 @@ class Create3(Robot):
 
     async def get_docking_values(self):
         """Get docking values."""
+        # TODO: Harmonize access with cached value from events
         dev, cmd, inc = 19, 1, self.inc
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer

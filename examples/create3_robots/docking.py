@@ -8,6 +8,7 @@ from irobot_edu_sdk.music import Note
 
 robot = Create3(Bluetooth())
 
+POLL_SENSOR = True # Try changing this to compare the speed of events vs polling
 
 @event(robot.when_play)
 async def play(robot):
@@ -21,9 +22,14 @@ async def play(robot):
 
 @event(robot.when_play)
 async def play(robot):
-    # Dock sensor visualizer; could be improved with events
+
     while True:
-        sensor = (await robot.get_docking_values())['IR sensor 0']
+        if POLL_SENSOR:
+            sensor = (await robot.get_docking_values())['IR sensor 0']
+        else:
+            sensor = robot.docking_sensor.sensors[0]
+            if sensor == None: # no event yet received
+                sensor = 0
         r = 255 * ((sensor & 8)/8)
         g = 255 * ((sensor & 4)/4)
         b = 255 * (sensor & 1)

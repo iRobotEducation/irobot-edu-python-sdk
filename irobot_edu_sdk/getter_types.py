@@ -146,6 +146,12 @@ class CliffSensor:
         self.disable_motors = False
 
 
+class DockingSensor:
+    def __init__(self):
+        self.contacts = None
+        self.sensors = (None, None, None)
+
+
 class LightSensors:
     def __init__(self):
         self.state: int = 0
