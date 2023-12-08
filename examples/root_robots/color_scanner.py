@@ -54,7 +54,9 @@ async def sense(robot):
 
     while True:
         try:
-            for c in await robot.get_color_ids():
+            for c in (await robot.get_color_ids())[::-1]:
+                # Note -- the [::-1] reverses the order of the tuple,
+                # which is necessary to make it look correct in the console.
                 if c in ColorID:
                     print(colors[c], end='')
                 else:
