@@ -575,7 +575,7 @@ class Robot:
     async def play_note(self, frequency: Union[float, int], duration: Union[float, int]):
         """Play note with frequency in hertz for duration in seconds."""
         dev, cmd, inc = 5, 0, self.inc
-        payload = pack('>IH', abs(frequency), abs(int(duration * 1000)))
+        payload = pack('>IH', abs(int(frequency)), abs(int(duration * 1000)))
         completer = Completer()
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
