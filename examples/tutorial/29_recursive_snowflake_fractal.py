@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 # Want to draw something more complex?
@@ -29,13 +29,13 @@ async def fractal(level, size):
 
 @event(robot.when_play)
 async def play(robot):
-    await robot.set_lights(Root.LIGHT_SPIN, Color(0, 0, 255))
-    await robot.set_marker(Root.MARKER_DOWN)  # Will have no effect on Create 3.
+    await robot.set_lights_spin_rgb(0, 0, 255)
+    await robot.set_marker_down()  # Will have no effect on Create 3.
 
     for _ in range(3):
         await fractal(3, 40)
         await robot.turn_left(-120)
 
-    await robot.set_marker(Root.MARKER_UP)  # Will have no effect on Create 3.
+    await robot.set_marker_and_eraser_up()  # Will have no effect on Create 3.
 
 robot.play()

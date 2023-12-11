@@ -16,7 +16,7 @@ def print_pos(robot):
 
 @event(robot.when_play)
 async def play(robot):
-    await robot.set_lights_rgb(30, 255, 100)
+    await robot.set_lights_on_rgb(30, 255, 100)
     await robot.play_note(Note.A5, .5)
 
     distance = 5
@@ -33,6 +33,6 @@ async def play(robot):
     await robot.move(-distance)
     print_pos(robot)
 
-    await robot.set_lights_rgb(30, 255, 100)
+    await robot.set_lights_on_rgb(30, 255, 100)
 
 robot.play()

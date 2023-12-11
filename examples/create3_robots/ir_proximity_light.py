@@ -17,6 +17,6 @@ async def play(robot):
         r = 255 * sensors[2] / 4095
         g = 255 * sensors[3] / 4095
         b = 255 * sensors[4] / 4095
-        await robot.set_lights_rgb(r, g, b)
+        await robot.set_lights_on_rgb(r, g, b)
 
 robot.play()

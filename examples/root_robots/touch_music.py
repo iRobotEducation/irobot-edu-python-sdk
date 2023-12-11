@@ -14,28 +14,28 @@ duration = 0.15
 @event(robot.when_touched, [True, False,
                             False, False])
 async def touched(robot):
-    await robot.set_lights_rgb(255, 0, 0)
+    await robot.set_lights_on_rgb(255, 0, 0)
     await robot.play_note(Note.A4, duration)
 
 
 @event(robot.when_touched, [False, True,
                             False, False])
 async def touched(robot):
-    await robot.set_lights_rgb(0, 255, 0)
+    await robot.set_lights_on_rgb(0, 255, 0)
     await robot.play_note(Note.C5_SHARP, duration)
 
 
 @event(robot.when_touched, [False, False,
                             True, False])
 async def touched(robot):
-    await robot.set_lights_rgb(0, 0, 255)
+    await robot.set_lights_on_rgb(0, 0, 255)
     await robot.play_note(Note.E5, duration)
 
 
 @event(robot.when_touched, [False, False,
                             False, True])
 async def touched(robot):
-    await robot.set_lights_rgb(255, 255, 255)
+    await robot.set_lights_on_rgb(255, 255, 255)
     await robot.play_note(Note.A5, duration)
 
 

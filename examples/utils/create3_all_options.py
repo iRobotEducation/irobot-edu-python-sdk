@@ -24,20 +24,20 @@ async def print_pos(robot):
 # Please note that the 'robot' parameter is not related to the 'robot' instance: robot is what can be used inside the event's function.
 async def bumped(robot):  # The name of this function can be any valid Python function name.
     print('Left bumper pressed')
-    await robot.set_lights_rgb(255, 0, 0)  # red
+    await robot.set_lights_on_rgb(255, 0, 0)  # red
     await robot.set_wheel_speeds(-speed, speed)
 
 
 @event(robot.when_bumped, [False, True])
 async def bumped(robot):
     print('Right bumper pressed')
-    await robot.set_lights_rgb(0, 255, 0)  # green.
+    await robot.set_lights_on_rgb(0, 255, 0)  # green.
     await robot.set_wheel_speeds(speed, -speed)
 
 
 @event(robot.when_bumped, [True, True])
 async def bumped(robot):
-    print('Any bumper pressed')
+    print('Any bumper pressed; bumper state is', await robot.get_bumpers())
 
 
 @event(robot.when_bumped, [True, True])
@@ -54,7 +54,7 @@ async def touched(robot):
 
 @event(robot.when_touched, [True, True])
 async def touched(robot):
-    print('Any button pressed')
+    print('Any button sensor touched; touch state is', await robot.get_touch_sensors())
 
 
 @event(robot.when_touched, [True, False])  # (.) button
@@ -69,7 +69,7 @@ async def touched(robot):
 @event(robot.when_touched, [False, True])  # (..) button
 async def touched(robot):
     print('(..) button touched')
-    await robot.set_lights(Robot.LIGHT_SPIN, Color(255, 255, 0))
+    await robot.set_lights_spin_rgb(255, 255, 0)
     await robot.move(2)
     await robot.arc_right(90, 4)
     await robot.arc_right(-90, 4)
@@ -79,7 +79,7 @@ async def touched(robot):
 @event(robot.when_play)
 async def play(robot):
     print('play 1')
-    await robot.set_lights_rgb(100, 100, 255)
+    await robot.set_lights_on_rgb(100, 100, 255)
 
 
 @event(robot.when_play)
@@ -101,9 +101,9 @@ async def play(robot):
 async def play(robot):
     print('play 2')
     for _ in range(4):
-        await robot.set_lights_rgb(100, 100, 255)
+        await robot.set_lights_on_rgb(100, 100, 255)
         await robot.wait(1)
-        await robot.set_lights_rgb(0, 255, 80)
+        await robot.set_lights_on_rgb(0, 255, 80)
         await robot.wait(1)
 
 
@@ -115,7 +115,7 @@ async def play(robot):
         r = 255 * sensors[2] / 4095
         g = 255 * sensors[3] / 4095
         b = 255 * sensors[4] / 4095
-        await robot.set_lights_rgb(r, g, b)
+        await robot.set_lights_on_rgb(r, g, b)
 
 
 # Triggers all the "when_play" events as parallel tasks.

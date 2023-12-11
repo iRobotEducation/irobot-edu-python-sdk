@@ -14,7 +14,7 @@ robot = Root(Bluetooth())
 
 @event(robot.when_play)
 async def play(robot):
-    await robot.set_lights_rgb(25, 100, 255)
+    await robot.set_lights_on_rgb(25, 100, 255)
     battery = await robot.get_battery_level()
     print('Name:', await robot.get_name())
     print('Battery: ', battery[0], 'mV; ', battery[1], '%')

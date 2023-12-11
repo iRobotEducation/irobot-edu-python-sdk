@@ -11,7 +11,7 @@ robot = Create3(Bluetooth())
 
 @event(robot.when_play)
 async def play(robot):
-    await robot.set_lights_rgb(0, 255, 0)
+    await robot.set_lights_on_rgb(0, 255, 0)
     while True:
         sensors = (await robot.get_ir_proximity()).sensors
         print(sensors)

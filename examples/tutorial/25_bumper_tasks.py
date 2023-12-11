@@ -17,14 +17,14 @@ speed = 10.0
 @event(robot.when_bumped, [True, False])
 async def bumped(robot):
     print ('Left bumper triggered')
-    await robot.set_lights_rgb(255, 0, 0)
+    await robot.set_lights_on_rgb(255, 0, 0)
     await robot.set_wheel_speeds(-speed, speed)
 
 
 @event(robot.when_bumped, [False, True])
 async def bumped(robot):
     print ('Right bumper triggered')
-    await robot.set_lights_rgb(0, 255, 0)
+    await robot.set_lights_on_rgb(0, 255, 0)
     await robot.set_wheel_speeds(speed, -speed)
 
 

@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
 #
 
 # Now let's draw another simple spiral, this time by changing the speed of the wheels incrementally.
@@ -14,12 +14,17 @@ robot = Root(Bluetooth())
 
 @event(robot.when_play)
 async def spiral(robot):
+    STEPS = 20
+
     left_speed = -2
-    await robot.set_marker(Root.MARKER_DOWN)  # Will have no effect on Create 3.
-    for _ in range(0, 40):
+    await robot.set_marker_down()  # Will have no effect on Create 3.
+    for i in range(0, STEPS):
+        print(f"{i / STEPS * 100:.1f}% complete")
+
         left_speed += 0.2
         await robot.set_wheel_speeds(left_speed, 6)
         await robot.wait(1)
     await robot.stop()
+    print("Done!")
 
 robot.play()

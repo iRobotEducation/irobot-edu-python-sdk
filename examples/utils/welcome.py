@@ -14,7 +14,7 @@ speed = 10.0
 
 @event(robot.when_bumped, [True, False]) # Triggers when left bumper is depressed
 async def bumped(robot):  # The name of this function can be any valid function name (the important part is the @event decorator)
-    await robot.set_lights_rgb(0, 0, 255)
+    await robot.set_lights_on_rgb(0, 0, 255)
     await robot.set_wheel_speeds(-speed, speed)
 # Alternative syntax (the @event decorator must be commented out)
 # robot.when_bumped([True, False], when_bumper)
@@ -22,7 +22,7 @@ async def bumped(robot):  # The name of this function can be any valid function 
 
 @event(robot.when_bumped, [False, True]) # Triggers when right bumper is depressed
 async def bumped(robot):
-    await robot.set_lights_rgb(255, 255, 0)
+    await robot.set_lights_on_rgb(255, 255, 0)
     await robot.set_wheel_speeds(speed, -speed)
 
 
@@ -37,7 +37,7 @@ async def bumped(robot):
 
 @event(robot.when_play)
 async def play(robot):
-    await robot.set_lights_rgb(128, 0, 255)
+    await robot.set_lights_on_rgb(128, 0, 255)
     await robot.play_note(Note.A5, .5)  # Notes can be specified by frequency, or by using the Note class' constants.
 
 robot.play()
