@@ -265,20 +265,27 @@ class Robot:
                         await event.run(self)
 
     async def _when_cliff_sensor_handler(self, packet: Packet):
-        self.cliff_sensor.disable_motors = packet.payload[4] != 0
-
-        for event in self._when_cliff_sensor:
+        if len(packet.payload) > 4:
+            self.cliff_sensor.disable_motors = packet.payload[4] != 0
             self.cliff_sensor.right = packet.payload[4] & 0x01 != 0
             self.cliff_sensor.front_right = packet.payload[4] & 0x02 != 0
             self.cliff_sensor.front_left = packet.payload[4] & 0x04 != 0
             self.cliff_sensor.left = packet.payload[4] & 0x08 != 0
-            
-            # An empty condition list means to trigger the event on every occurrence.
-            if not event.condition and (self.cliff_sensor.left or self.cliff_sensor.left_front or self.cliff_sensor.right_front or self.cliff_sensor.right):  # Any.
-                await event.run(self)
-                continue
-            if len(event.condition) > 1 and ((event.condition[0] == self.cliff_sensor.left) and (event.condition[1] == self.cliff_sensor.left_front) and (event.condition[2] == self.cliff_sensor.right_front) and (event.condition[3] == self.cliff_sensor.right)):
-                await event.run(self)
+
+            for event in self._when_cliff_sensor:
+                # An empty condition list means to trigger the event on every occurrence.
+                if not event.condition and (self.cliff_sensor.left or self.cliff_sensor.front_left or self.cliff_sensor.front_right or self.cliff_sensor.right):  # Any.
+                    await event.run(self)
+                    continue
+                elif len(event.condition) > 1 and len(event.condition) < 3:
+                    if (event.condition[0] == self.cliff_sensor.left):
+                        await event.run(self)
+                elif len(event.condition) > 3:
+                    if ((event.condition[0] == self.cliff_sensor.left) and 
+                        (event.condition[1] == self.cliff_sensor.front_left) and 
+                        (event.condition[2] == self.cliff_sensor.front_right) and 
+                        (event.condition[3] == self.cliff_sensor.right)):
+                        await event.run(self)
 
     # Event Callbacks.
 
