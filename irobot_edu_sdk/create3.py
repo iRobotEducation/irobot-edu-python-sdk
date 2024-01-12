@@ -224,3 +224,7 @@ class Create3(Robot):
             return '.'.join([major, str(minor), str(patch)])
         except IndexError:
             return None
+
+    def get_touch_sensors_cached(self):
+        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet'''
+        return super().get_touch_sensors_cached()[0:2]

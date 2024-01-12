@@ -248,20 +248,19 @@ class Robot:
 
             for event in self._when_touched:
                 # An empty condition list means to trigger the event on every occurrence.
-                not_condition = not event.condition
-                any = (not_condition and self.touch_sensors.front_left) or (not_condition and self.touch_sensors.front_right) or (
-                    not_condition and self.touch_sensors.back_left) or (not_condition and self.touch_sensors.back_right)
+                any = (not event.condition) and (self.touch_sensors.front_left or self.touch_sensors.front_right or
+                                                 self.touch_sensors.back_left or self.touch_sensors.back_right)
                 if any:
                     await event.run(self)
                 elif len(event.condition) > 1 and len(event.condition) < 3:
-                    if any or ((event.condition[0] and self.touch_sensors.front_left) or
-                               (event.condition[1] and self.touch_sensors.front_right)):
+                    if (  (event.condition[0] and self.touch_sensors.front_left) or
+                          (event.condition[1] and self.touch_sensors.front_right)):
                         await event.run(self)
                 elif len(event.condition) > 3:
-                    if any or ((event.condition[0] and self.touch_sensors.front_left) or
-                               (event.condition[1] and self.touch_sensors.front_right) or
-                               (event.condition[2] and self.touch_sensors.back_left) or
-                               (event.condition[3] and self.touch_sensors.back_right)):
+                    if (  (event.condition[0] and self.touch_sensors.front_left) or
+                          (event.condition[1] and self.touch_sensors.front_right) or
+                          (event.condition[2] and self.touch_sensors.back_left) or
+                          (event.condition[3] and self.touch_sensors.back_right)):
                         await event.run(self)
 
     async def _when_cliff_sensor_handler(self, packet: Packet):
