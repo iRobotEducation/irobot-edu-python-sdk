@@ -3,9 +3,9 @@
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
-from irobot_edu_sdk.robots import event, hand_over, Color, Robot, Root, Create3
+from irobot_edu_sdk.robots import event, hand_over, Color, Robot, Root
 
-robot = Create3(Bluetooth())
+robot = Root(Bluetooth())
 
 @event(robot.when_cliff_sensor, [True])
 async def play(robot):
