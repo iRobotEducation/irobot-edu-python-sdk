@@ -160,7 +160,7 @@ class Create3(Robot):
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
         timeout = self.DEFAULT_TIMEOUT + int(math.sqrt(x * x + y * y) / 10) + 4  # 4 is the timeout for a potential rotation.
-        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        packet = await completer.wait(timeout)
         if self.USE_ROBOT_POSE and packet:
             return self.pose.set_from_packet(packet)
         else:
