@@ -144,6 +144,10 @@ class TouchSensors:
 class CliffSensor:
     def __init__(self):
         self.disable_motors = False
+        self.left = False
+        self.front_left = False
+        self.right = False
+        self.front_right = False
 
 
 class DockingSensor:

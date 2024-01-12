@@ -268,8 +268,17 @@ class Robot:
         self.cliff_sensor.disable_motors = packet.payload[4] != 0
 
         for event in self._when_cliff_sensor:
-            # TODO: Add trigger
-            await event.run(self)
+            self.cliff_sensor.right = packet.payload[4] & 0x01 != 0
+            self.cliff_sensor.front_right = packet.payload[4] & 0x02 != 0
+            self.cliff_sensor.front_left = packet.payload[4] & 0x04 != 0
+            self.cliff_sensor.left = packet.payload[4] & 0x08 != 0
+            
+            # An empty condition list means to trigger the event on every occurrence.
+            if not event.condition and (self.cliff_sensor.left or self.cliff_sensor.left_front or self.cliff_sensor.right_front or self.cliff_sensor.right):  # Any.
+                await event.run(self)
+                continue
+            if len(event.condition) > 1 and ((event.condition[0] == self.cliff_sensor.left) and (event.condition[1] == self.cliff_sensor.left_front) and (event.condition[2] == self.cliff_sensor.right_front) and (event.condition[3] == self.cliff_sensor.right)):
+                await event.run(self)
 
     # Event Callbacks.
 
@@ -297,7 +306,7 @@ class Robot:
         """Register when touch callback of type: async def fn(front_left: bool, front_right: bool, back_left: bool, back_right: bool)."""
         self._when_touched.append(Event(condition, callback))
 
-    def when_cliff_sensor(self, condition: list[bool], callback: Callable[[bool], Awaitable[None]]):
+    def when_cliff_sensor(self, condition: list[bool, bool, bool, bool], callback: Callable[[bool], Awaitable[None]]):
         """Register when cliff callback of type: async def fn(over_cliff: bool)."""
         self._when_cliff_sensor.append(Event(condition, callback))
 
