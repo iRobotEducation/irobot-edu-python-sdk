@@ -274,17 +274,16 @@ class Robot:
 
             for event in self._when_cliff_sensor:
                 # An empty condition list means to trigger the event on every occurrence.
-                if not event.condition and (self.cliff_sensor.left or self.cliff_sensor.front_left or self.cliff_sensor.front_right or self.cliff_sensor.right):  # Any.
+                if not event.condition and self.cliff_sensor.disable_motors:  # Any.
                     await event.run(self)
-                    continue
-                elif len(event.condition) > 1 and len(event.condition) < 3:
-                    if (event.condition[0] == self.cliff_sensor.left):
+                elif len(event.condition) > 0 and len(event.condition) < 3:
+                    if (event.condition[0] == self.cliff_sensor.disable_motors):
                         await event.run(self)
                 elif len(event.condition) > 3:
-                    if ((event.condition[0] == self.cliff_sensor.left) and 
-                        (event.condition[1] == self.cliff_sensor.front_left) and 
-                        (event.condition[2] == self.cliff_sensor.front_right) and 
-                        (event.condition[3] == self.cliff_sensor.right)):
+                    if ((event.condition[0] and self.cliff_sensor.left) or
+                        (event.condition[1] and self.cliff_sensor.front_left) or
+                        (event.condition[2] and self.cliff_sensor.front_right) or
+                        (event.condition[3] and self.cliff_sensor.right)):
                         await event.run(self)
 
     # Event Callbacks.
