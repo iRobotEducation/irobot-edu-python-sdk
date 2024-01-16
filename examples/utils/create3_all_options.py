@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2024 iRobot Corporation. All rights reserved.
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
@@ -74,6 +74,11 @@ async def touched(robot):
     await robot.arc_right(90, 4)
     await robot.arc_right(-90, 4)
     await robot.move(-2)
+
+
+@event(robot.when_cliff_sensor, [True, True, True, True])
+async def cliff(robot):
+    print('There\'s a cliff!')
 
 
 @event(robot.when_play)

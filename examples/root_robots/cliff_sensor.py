@@ -8,7 +8,7 @@ from irobot_edu_sdk.robots import event, Root
 robot = Root(Bluetooth())
 
 @event(robot.when_cliff_sensor, [True])
-async def play(robot):
-    print('There\'s a Cliff!')
+async def cliff(robot):
+    print('There\'s a cliff!')
 
 robot.play()

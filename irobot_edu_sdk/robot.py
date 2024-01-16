@@ -646,11 +646,11 @@ class Robot:
                 break
 
     def get_bumpers_cached(self):
-        '''Returns list of most recently seen bumper state, or None if no event has happened yet'''
+        '''Returns tuple of most recently seen bumper state, or None if no event has happened yet'''
         return (self.bumpers.left, self.bumpers.right)
 
     async def get_bumpers(self):
-        '''Returns list of most recently seen bumper state, or None if no event has happened yet.
+        '''Returns tuple of most recently seen bumper state, or None if no event has happened yet.
            If there were a protocol getter, this would await that response when the cache is empty.
         '''
         return self.get_bumpers_cached()
@@ -671,12 +671,12 @@ class Robot:
         return None
 
     def get_touch_sensors_cached(self):
-        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet'''
+        '''Returns tuple of most recently seen touch sensor state, or None if no event has happened yet'''
         return (self.touch_sensors.front_left, self.touch_sensors.front_right,
                 self.touch_sensors.back_left,  self.touch_sensors.back_right)
 
     async def get_touch_sensors(self):
-        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet.
+        '''Returns tuple of most recently seen touch sensor state, or None if no event has happened yet.
            If there were a protocol getter, this would await that response when the cache is empty.
         '''
         return self.get_touch_sensors_cached()

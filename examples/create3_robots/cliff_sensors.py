@@ -8,23 +8,23 @@ from irobot_edu_sdk.robots import event, Create3
 robot = Create3(Bluetooth())
 
 @event(robot.when_cliff_sensor, [True, False, False, False])
-async def play(robot):
+async def cliff(robot):
     print('Left')
 
 @event(robot.when_cliff_sensor, [False, True, False, False])
-async def play(robot):
+async def cliff(robot):
     print('Front Left')
 
 @event(robot.when_cliff_sensor, [False, False, True, False])
-async def play(robot):
+async def cliff(robot):
     print('Front Right')
 
 @event(robot.when_cliff_sensor, [False, False, False, True])
-async def play(robot):
+async def cliff(robot):
     print('Right')
 
 @event(robot.when_cliff_sensor, [True, True, True, True])
-async def play(robot):
-    print('There\'s a Cliff!')
+async def cliff(robot):
+    print('There\'s a cliff!')
 
 robot.play()

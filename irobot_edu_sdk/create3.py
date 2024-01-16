@@ -228,3 +228,14 @@ class Create3(Robot):
     def get_touch_sensors_cached(self):
         '''Returns list of most recently seen touch sensor state, or None if no event has happened yet'''
         return super().get_touch_sensors_cached()[0:2]
+
+    def get_cliff_sensors_cached(self):
+        '''Returns tuple of most recently seen cliff sensor state'''
+        return (self.cliff_sensor.left, self.cliff_sensor.front_left,
+                self.cliff_sensor.front_right, self.cliff_sensor.right)
+
+    async def get_cliff_sensors(self):
+        '''Returns tuple of most recently seen cliff sensor state.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_cliff_sensors_cached()
