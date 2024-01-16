@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2023 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2021-2024 iRobot Corporation. All rights reserved.
 #
 
 from irobot_edu_sdk.backend.bluetooth import Bluetooth
@@ -131,6 +131,11 @@ async def dark(robot):
 @event(robot.when_light_seen, [Root.LightEvent.BRIGHTER])
 async def bright(robot):
     print('Things got brighter; sensor values are', await robot.get_light_values())
+
+
+@event(robot.when_cliff_sensor, [True])
+async def cliff(robot):
+    print('There\'s a cliff!')
 
 
 @event(robot.when_play)

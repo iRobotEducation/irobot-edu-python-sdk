@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
 try:
@@ -248,28 +248,42 @@ class Robot:
 
             for event in self._when_touched:
                 # An empty condition list means to trigger the event on every occurrence.
-                not_condition = not event.condition
-                any = (not_condition and self.touch_sensors.front_left) or (not_condition and self.touch_sensors.front_right) or (
-                    not_condition and self.touch_sensors.back_left) or (not_condition and self.touch_sensors.back_right)
+                any = (not event.condition) and (self.touch_sensors.front_left or self.touch_sensors.front_right or
+                                                 self.touch_sensors.back_left or self.touch_sensors.back_right)
                 if any:
                     await event.run(self)
                 elif len(event.condition) > 1 and len(event.condition) < 3:
-                    if any or ((event.condition[0] and self.touch_sensors.front_left) or
-                               (event.condition[1] and self.touch_sensors.front_right)):
+                    if (  (event.condition[0] and self.touch_sensors.front_left) or
+                          (event.condition[1] and self.touch_sensors.front_right)):
                         await event.run(self)
                 elif len(event.condition) > 3:
-                    if any or ((event.condition[0] and self.touch_sensors.front_left) or
-                               (event.condition[1] and self.touch_sensors.front_right) or
-                               (event.condition[2] and self.touch_sensors.back_left) or
-                               (event.condition[3] and self.touch_sensors.back_right)):
+                    if (  (event.condition[0] and self.touch_sensors.front_left) or
+                          (event.condition[1] and self.touch_sensors.front_right) or
+                          (event.condition[2] and self.touch_sensors.back_left) or
+                          (event.condition[3] and self.touch_sensors.back_right)):
                         await event.run(self)
 
     async def _when_cliff_sensor_handler(self, packet: Packet):
-        self.cliff_sensor.disable_motors = packet.payload[4] != 0
+        if len(packet.payload) > 4:
+            self.cliff_sensor.disable_motors = packet.payload[4] != 0
+            self.cliff_sensor.right = packet.payload[4] & 0x01 != 0
+            self.cliff_sensor.front_right = packet.payload[4] & 0x02 != 0
+            self.cliff_sensor.front_left = packet.payload[4] & 0x04 != 0
+            self.cliff_sensor.left = packet.payload[4] & 0x08 != 0
 
-        for event in self._when_cliff_sensor:
-            # TODO: Add trigger
-            await event.run(self)
+            for event in self._when_cliff_sensor:
+                # An empty condition list means to trigger the event on every occurrence.
+                if not event.condition and self.cliff_sensor.disable_motors:  # Any.
+                    await event.run(self)
+                elif len(event.condition) > 0 and len(event.condition) < 3:
+                    if (event.condition[0] == self.cliff_sensor.disable_motors):
+                        await event.run(self)
+                elif len(event.condition) > 3:
+                    if ((event.condition[0] and self.cliff_sensor.left) or
+                        (event.condition[1] and self.cliff_sensor.front_left) or
+                        (event.condition[2] and self.cliff_sensor.front_right) or
+                        (event.condition[3] and self.cliff_sensor.right)):
+                        await event.run(self)
 
     # Event Callbacks.
 
@@ -297,7 +311,7 @@ class Robot:
         """Register when touch callback of type: async def fn(front_left: bool, front_right: bool, back_left: bool, back_right: bool)."""
         self._when_touched.append(Event(condition, callback))
 
-    def when_cliff_sensor(self, condition: list[bool], callback: Callable[[bool], Awaitable[None]]):
+    def when_cliff_sensor(self, condition: list[bool, bool, bool, bool], callback: Callable[[bool], Awaitable[None]]):
         """Register when cliff callback of type: async def fn(over_cliff: bool)."""
         self._when_cliff_sensor.append(Event(condition, callback))
 
@@ -632,11 +646,11 @@ class Robot:
                 break
 
     def get_bumpers_cached(self):
-        '''Returns list of most recently seen bumper state, or None if no event has happened yet'''
+        '''Returns tuple of most recently seen bumper state, or None if no event has happened yet'''
         return (self.bumpers.left, self.bumpers.right)
 
     async def get_bumpers(self):
-        '''Returns list of most recently seen bumper state, or None if no event has happened yet.
+        '''Returns tuple of most recently seen bumper state, or None if no event has happened yet.
            If there were a protocol getter, this would await that response when the cache is empty.
         '''
         return self.get_bumpers_cached()
@@ -657,12 +671,12 @@ class Robot:
         return None
 
     def get_touch_sensors_cached(self):
-        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet'''
+        '''Returns tuple of most recently seen touch sensor state, or None if no event has happened yet'''
         return (self.touch_sensors.front_left, self.touch_sensors.front_right,
                 self.touch_sensors.back_left,  self.touch_sensors.back_right)
 
     async def get_touch_sensors(self):
-        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet.
+        '''Returns tuple of most recently seen touch sensor state, or None if no event has happened yet.
            If there were a protocol getter, this would await that response when the cache is empty.
         '''
         return self.get_touch_sensors_cached()

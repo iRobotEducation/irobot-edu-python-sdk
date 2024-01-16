@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -144,6 +144,10 @@ class TouchSensors:
 class CliffSensor:
     def __init__(self):
         self.disable_motors = False
+        self.left = False
+        self.front_left = False
+        self.right = False
+        self.front_right = False
 
 
 class DockingSensor:

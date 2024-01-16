@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -261,11 +261,27 @@ class Root(Robot):
         return tuple(values)
 
     def get_color_ids_cached(self):
-        '''Returns list of most recently seen color sensor IDs, or None if no event has happened yet'''
+        '''Returns tuple of most recently seen color sensor IDs, or None if no event has happened yet'''
         return tuple(self.color_sensor.colors) if self.color_sensor.colors != [] else None
 
     async def get_color_ids(self):
-        '''Returns list of most recently seen color sensor IDs, or None if no event has happened yet.
+        '''Returns tuple of most recently seen color sensor IDs, or None if no event has happened yet.
            If there were a protocol getter, this would await that response when the cache is empty.
         '''
         return self.get_color_ids_cached()
+
+    def get_cliff_sensors_cached(self):
+        '''Returns tuple of most recently seen cliff sensor state'''
+        return (self.cliff_sensor.disable_motors)
+
+    async def get_cliff_sensors(self):
+        '''Returns tuple of most recently seen cliff sensor state.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_cliff_sensors_cached()
+
+    async def get_cliff_sensor(self):
+        '''Returns tuple of most recently seen cliff sensor state.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_cliff_sensors_cached()

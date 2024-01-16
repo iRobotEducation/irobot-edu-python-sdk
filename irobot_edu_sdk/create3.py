@@ -1,5 +1,5 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2023 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
 import math
@@ -160,7 +160,7 @@ class Create3(Robot):
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
         timeout = self.DEFAULT_TIMEOUT + int(math.sqrt(x * x + y * y) / 10) + 4  # 4 is the timeout for a potential rotation.
-        packet = await completer.wait(self.DEFAULT_TIMEOUT)
+        packet = await completer.wait(timeout)
         if self.USE_ROBOT_POSE and packet:
             return self.pose.set_from_packet(packet)
         else:
@@ -224,3 +224,18 @@ class Create3(Robot):
             return '.'.join([major, str(minor), str(patch)])
         except IndexError:
             return None
+
+    def get_touch_sensors_cached(self):
+        '''Returns list of most recently seen touch sensor state, or None if no event has happened yet'''
+        return super().get_touch_sensors_cached()[0:2]
+
+    def get_cliff_sensors_cached(self):
+        '''Returns tuple of most recently seen cliff sensor state'''
+        return (self.cliff_sensor.left, self.cliff_sensor.front_left,
+                self.cliff_sensor.front_right, self.cliff_sensor.right)
+
+    async def get_cliff_sensors(self):
+        '''Returns tuple of most recently seen cliff sensor state.
+           If there were a protocol getter, this would await that response when the cache is empty.
+        '''
+        return self.get_cliff_sensors_cached()
