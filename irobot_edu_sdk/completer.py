@@ -1,15 +1,18 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
 try:
     from asyncio import sleep
     from time import time
-    from typing import Any, Optional
 except ImportError:
     from uasyncio import sleep
     from utime import time
 
+try:
+    from typing import Any, Optional
+except ImportError:
+    pass # not supported in microprocessor Python
 
 class Completer():
     def __init__(self):

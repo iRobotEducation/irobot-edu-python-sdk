@@ -3,8 +3,14 @@
 #
 
 import math
-from enum import IntEnum
-from typing import Union, Callable, Awaitable, List
+try:
+    from enum import IntEnum
+except ImportError:
+     IntEnum = object # not supported in microprocessor Python
+try:
+    from typing import Union, Callable, Awaitable, List
+except ImportError:
+    pass # not supported in microprocessor Python
 from struct import pack, unpack
 from .backend.backend import Backend
 from .event import Event

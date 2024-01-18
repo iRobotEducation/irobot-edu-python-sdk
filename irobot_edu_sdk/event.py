@@ -1,9 +1,13 @@
 #
-# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2022 iRobot Corporation. All rights reserved.
+# Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
-
-import functools
+# TODO: Make this a conditional import on {microprocessor python}_functools once this function is supported
+try:
+    from functools import wraps
+except ImportError:
+    def wraps(wrapped, assigned=None, updated=None):
+        return wrapped
 
 try:
     import asyncio
@@ -43,7 +47,7 @@ def event(method, condition=None):
         else:
             method(func)
 
-        @functools.wraps(func)  # May not work on MicroPython (in that case, load functools conditionally).
+        @wraps(func)
         def wrapper_event(*args, **kwargs):
             func(*args, **kwargs)
         return wrapper_event

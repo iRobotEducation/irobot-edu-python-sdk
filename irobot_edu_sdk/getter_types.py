@@ -3,7 +3,10 @@
 #
 
 import math
-from typing import List
+try:
+    from typing import List
+except ImportError:
+    pass # not supported in microprocessor Python
 from struct import unpack
 
 from .packet import Packet

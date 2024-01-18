@@ -4,11 +4,20 @@
 
 try:
     import asyncio
-    from typing import Union, Dict, Tuple, Callable, Awaitable, List
 except ImportError:
     import uasyncio as asyncio
 
-from enum import IntEnum
+try:
+    from typing import Union, Dict, Tuple, Callable, Awaitable, List
+    import signal
+except ImportError:
+    pass # not supported in microprocessor Python
+
+try:
+    from enum import IntEnum
+except ImportError:
+    IntEnum = object # not supported in microprocessor Python.
+
 from struct import pack, unpack
 from math import radians
 from .completer import Completer
@@ -18,7 +27,6 @@ from .color import Color
 from .backend.backend import Backend
 from .event import Event
 from .getter_types import Bumpers, TouchSensors, CliffSensor, MotorStall, Battery, Pose
-import signal
 import sys
 
 
@@ -114,15 +122,18 @@ class Robot:
         self.vars = self.Vars()
 
         # Catch all signals and direct to the _exit_handler
-        signal.signal(signal.SIGINT, _exit_handler)
-        signal.signal(signal.SIGTERM, _exit_handler)
-
         try:
-            signal.signal(signal.SIGTSTP, _exit_handler)
-            signal.signal(signal.SIGQUIT, _exit_handler)
-            signal.signal(signal.SIGHUP, _exit_handler)
-        except AttributeError:
-            pass # these signals do not exist in Windows
+            signal.signal(signal.SIGINT, _exit_handler)
+            signal.signal(signal.SIGTERM, _exit_handler)
+
+            try:
+                signal.signal(signal.SIGTSTP, _exit_handler)
+                signal.signal(signal.SIGQUIT, _exit_handler)
+                signal.signal(signal.SIGHUP, _exit_handler)
+            except AttributeError:
+                pass # these signals do not exist in Windows
+        except NameError:
+            pass # no signals at all in microprocessor Python
 
     def __enter__(self):
         return self
@@ -336,6 +347,7 @@ class Robot:
             self._run = False
         finally:
             # This fails on the web version, so determining the platform is crucial:
+            # TODO: fix for microprocessor Python (fails with an AttributeError)
             if not is_web():
                 for task in asyncio.all_tasks(self._loop):
                     task.cancel()
