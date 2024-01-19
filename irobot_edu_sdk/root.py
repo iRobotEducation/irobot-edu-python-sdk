@@ -6,7 +6,15 @@ import math
 try:
     from enum import IntEnum
 except ImportError:
-     IntEnum = object # not supported in microprocessor Python
+    class IntEnum:
+        def __init__(self, value):
+            self._value = value
+        def __eq__(self, other):
+            try:
+                return self._value == other._value
+            except AttributeError:
+                return self._value == other
+
 try:
     from typing import Union, Callable, Awaitable, List
 except ImportError:
