@@ -16,7 +16,7 @@ robot = Root(Bluetooth())  # Will connect to the first robot found.
 
 # Functions decorated with @event triggered by events.
 # A robot.when_play event is triggered when the robot.play() method is called.
-# It is important that an event function, is declated as async.
+# It is important that event functions are declated as async.
 @event(robot.when_play)
 async def play(robot):  # The name of the function can be any valid Python function name.
     print('play!')  # Put your code here!
