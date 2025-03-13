@@ -64,7 +64,13 @@ class Robot:
     class Vars:
         pass
 
+    # Class-scope shared variables
+    robots = [] # List of instantiated
+    _run = False
+
     def __init__(self, backend: Backend):
+        Robot.robots.append(self) # Add myself to the list of all robots
+
         self._backend = backend
         self.on_data_reception = getattr(self._backend, 'on_data_reception', None)  # Events based backend?
         if callable(self.on_data_reception):
@@ -73,7 +79,6 @@ class Robot:
         self.pose = Pose()
 
         self._inc = 0
-        self._run = False
         self._disable_motors = False
         self._loop = asyncio.get_event_loop()
         self._responses: Dict[Tuple[int, int, int], Completer] = {}
@@ -132,10 +137,12 @@ class Robot:
 
     async def _finished(self):
         """Ensures that the robot resets its state when the program is finished neatly."""
-        if self._run and await self._backend.is_connected():
-            await self.stop()
-            await self.disconnect()
-            await self._backend.disconnect()
+        if self._run:
+            for r in Robot.robots:
+                if r._backend.is_connected():
+                    await r.stop()
+                    await r.disconnect()
+                    await r._backend.disconnect()
 
     @property
     def inc(self):
@@ -148,7 +155,7 @@ class Robot:
 
     def data_reception(self, data):
         # Only tries to run tasks triggered by BLE events if the program is running.
-        if self._run:
+        if Robot._run:
             # print('🦋 ', data) # Debug.
             packet = Packet.from_bytes(bytes(data))
             self._decode_packet(packet)
@@ -176,7 +183,7 @@ class Robot:
 
     async def _read_packets(self):
         """Reads and parses packets from robot."""
-        while self._run and await self._backend.is_connected():
+        while Robot._run and await self._backend.is_connected():
             await asyncio.sleep(0)  # Yield.
             packet = await self._backend.read_packet()
             self._decode_packet(packet)
@@ -185,7 +192,7 @@ class Robot:
         # Connect to robot.
         if not await self._backend.is_connected():
             await self._backend.connect()
-        self._run = True
+        Robot._run = True  #TODO - is this the right place for this?
 
         # Always resets the robot's state before starting the user's program.
         await self.stop()
@@ -203,12 +210,13 @@ class Robot:
     # Event Handlers.
 
     async def _when_stop_button_handler(self, packet: Packet):
-        self._run = False
-        stop_program = getattr(self._backend, 'stop_program', None)  # Events based backend?
-        if callable(stop_program):
-            stop_program()
-        for event in self._when_stop_button:
-            await event.run(self)
+        Robot._run = False
+        for r in Robot.robots:
+            stop_program = getattr(r._backend, 'stop_program', None)  # Events based backend?
+            if callable(stop_program):
+                stop_program()
+            for event in r._when_stop_button:
+                await event.run(self)
 
     async def _when_motor_stalled_handler(self, packet: Packet):
         self._disable_motors = True
@@ -319,21 +327,25 @@ class Robot:
 
     def play(self):
         """Start the program."""
-        if self._run:
+        if Robot._run:
             # Calling play() more than once makes the program unpredicable.
             print('🟧 Robot program already running')
             return
 
         try:
-            if hasattr(self._loop, 'is_running') and self._loop.is_running():
-                self._main_task = self._loop.create_task(self._main())
+            for r in Robot.robots:
+                r._main_task = self._loop.create_task(r._main())
+
+            if hasattr(r._loop, 'is_running') and r._loop.is_running():
+                print('Loop is running.')
             else:
-                self._loop.run_until_complete(self._main())
+                print('Run event loop.')
+                self._loop.run_forever()
         except KeyboardInterrupt:
             print('Caught keyboard interrupt exception, program stopping.')
-            self._run = False
+            Robot._run = False
         except SystemExit:
-            self._run = False
+            Robot._run = False
         finally:
             # This fails on the web version, so determining the platform is crucial:
             if not is_web():
