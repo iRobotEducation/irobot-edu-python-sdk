@@ -2,8 +2,6 @@
 # Licensed under 3-Clause BSD license available in the License file. Copyright (c) 2020-2024 iRobot Corporation. All rights reserved.
 #
 
-#-------------See changes in lines 164 through 185 to address premature timeout when navigating to origin using navigate_to()-----------------
-
 import math
 from enum import IntEnum, IntFlag
 from typing import Union, Callable, Awaitable, List
@@ -162,27 +160,10 @@ class Create3(Robot):
         self._responses[(dev, cmd, inc)] = completer
         await self._backend.write_packet(Packet(dev, cmd, inc, payload))
         
-        #-----Zurcher modification (original commented out)-----
-        ''' 
-        Original line was calculating the timeout based off the passed destination coordinates, not the distance traveling.
-        When traveling a longer distance to the origin(0,0), or a destination near the origin, the navigate_to() function
-        would time out before the destination was reached.  For example, if traveling to the origin (0,0) from a location 
-        further away than the robot can transit in 7 seconds, the robot will return from navigate_to() and begin processing
-        the next function, long before the robot ever reaches (0,0).
-
-        To correct this issue, the current position is polled, and delta_x & delta_y, which represent the actual distance 
-        to the destination are calculated by subtracting the current position from the destination position.  Then, these 
-        values are used in place of X and Y in the original timeout calculation.
-        '''
-
         self.get_position()
-        delta_x=(x-self.pose.x)
-        delta_y=(y-self.pose.y)
-        timeout = self.DEFAULT_TIMEOUT + int(math.sqrt(delta_x*delta_x + delta_y * delta_y) / 10) + 4  # 4 is the timeout for a potential rotation.
-        
-        #original line# timeout = self.DEFAULT_TIMEOUT + int(math.sqrt(x * x + y * y) / 10) + 4  # 4 is the timeout for a potential rotation.
-
-        #-------End Modification------------
+        dx = x - self.pose.x
+        dy = y - self.pose.y
+        timeout = self.DEFAULT_TIMEOUT + int(math.sqrt(dx * dx + dy * dy) / 10) + 4  # 4 is the timeout for a potential rotation.
         
         packet = await completer.wait(timeout)
         if self.USE_ROBOT_POSE and packet:
